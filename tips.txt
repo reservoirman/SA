@@ -1,0 +1,48 @@
+w4118@ubuntu:~/SecurityArchitecture$ git init
+Initialized empty Git repository in /home/w4118/SecurityArchitecture/.git/
+w4118@ubuntu:~/SecurityArchitecture$ git commit
+# On branch master
+#
+# Initial commit
+#
+nothing to commit (create/copy files and use "git add" to track)
+w4118@ubuntu:~/SecurityArchitecture$ sublime test.c
+^C
+w4118@ubuntu:~/SecurityArchitecture$ ls
+test.c
+w4118@ubuntu:~/SecurityArchitecture$ git add test.c
+w4118@ubuntu:~/SecurityArchitecture$ git status
+# On branch master
+#
+# Initial commit
+#
+# Changes to be committed:
+#   (use "git rm --cached <file>..." to unstage)
+#
+#	new file:   test.c
+#
+w4118@ubuntu:~/SecurityArchitecture$ git commit -m "checking in test file into repository"
+[master (root-commit) 67c151c] checking in test file into repository
+ 1 file changed, 7 insertions(+)
+ create mode 100644 test.c
+w4118@ubuntu:~/SecurityArchitecture$ git push
+fatal: No configured push destination.
+Either specify the URL from the command-line or configure a remote repository using
+
+    git remote add <name> <url>
+
+and then push using the remote name
+
+    git push <name>
+
+w4118@ubuntu:~/SecurityArchitecture$ git remote add origin https://github.com/reservoirman/SA.git
+w4118@ubuntu:~/SecurityArchitecture$ git push -u origin master
+Username for 'https://github.com': reservoirman
+Password for 'https://reservoirman@github.com': 
+To https://github.com/reservoirman/SA.git
+ * [new branch]      master -> master
+Branch master set up to track remote branch master from origin.
+w4118@ubuntu:~/SecurityArchitecture$ git status
+# On branch master
+nothing to commit (working directory clean)
+w4118@ubuntu:~/SecurityArchitecture$ 
