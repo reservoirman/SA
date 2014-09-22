@@ -3,6 +3,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+
+#define SIZE 100
+char buffer[SIZE];
+
 static void objput (char *username, char * objname)
 {
 
@@ -10,6 +14,10 @@ static void objput (char *username, char * objname)
 
 int main (int argv, char **argc)
 {
+
+	int data_processed = read(0, buffer, SIZE);
+	printf("Here are the contents: %s\n", buffer);
+	
 	//if the user supplied all of the arguments
 	if (argv == 4)
 	{

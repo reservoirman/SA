@@ -4,26 +4,11 @@
 #include <stdlib.h>
 
 
+
 int main (int argc, char **argv)
 {
-	//if the user supplied all of the arguments
-	/*
-	if (argc == 4)
-	{
-		//print them out
-		printf("Listing objects including their metadata for user %s.\n", argv[2]);	
-	}
-	else if (argc == 3)
-	{
-		printf("Listing objects for user %s.\n", argv[2]);	
-	}
-	//otherwise, remind the user that he needs to do that
-	else
-	{
-		printf("Please enter user name and object name.\n");
-	}
-*/
 	int opt;
+
 
 	while ((opt = getopt(argc, argv, ":if:lr")) != -1)
 	{
