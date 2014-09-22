@@ -7,6 +7,7 @@
 int main (int argc, char **argv)
 {
 	//if the user supplied all of the arguments
+	/*
 	if (argc == 4)
 	{
 		//print them out
@@ -21,13 +22,19 @@ int main (int argc, char **argv)
 	{
 		printf("Please enter user name and object name.\n");
 	}
-
+*/
 	int opt;
 
 	while ((opt = getopt(argc, argv, ":if:lr")) != -1)
 	{
 		switch (opt)
 		{
+			case 'i':
+			case 'l':
+			case 'r':
+				printf("Option: %c\n", opt);
+				break;
+
 			case 'f':
 			printf("filename: %s\n", optarg);
 			break;
@@ -37,14 +44,16 @@ int main (int argc, char **argv)
 			case '?':
 			printf("Unknown option: %c\n", optopt);
 			break;
+			default:
+			printf ("None of the above\n");
+			break;
 
 		}
+	}
 
 		for (; optind < argc; optind++)
 		{
 			printf("argument: %s\n", argv[optind]);
 		}
-
-	}
 
 }
