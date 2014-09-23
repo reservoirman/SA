@@ -1,5 +1,5 @@
-#ifndef NAMECHECKING_H
-#define NAMECHECKING_H
+#ifndef __NAMECHECKING_H__
+#define __NAMECHECKING_H__
 
 //function prototype 
 int namechecking_check(char * name);

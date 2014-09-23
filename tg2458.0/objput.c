@@ -2,7 +2,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
-
+#include "objects.h"
 
 #define SIZE 100
 char buffer[SIZE];
@@ -30,5 +30,7 @@ int main (int argv, char **argc)
 	{
 		printf("Please enter user name and object name.\n");
 	}
+
+	objects_createUserList();
 
 }

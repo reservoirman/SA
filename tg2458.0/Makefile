@@ -6,16 +6,22 @@ OBJ=sample.o countlines.o
 # The first target is the default if you just say "make".  In this
 # case, "build" relies on "sample", because I want the executable to be
 # called "sample"
-all: objput objget objlist
+all: namechecking objects objput objget objlist 
+
+namechecking:
+	gcc -c namechecking.c
+
+objects:
+	gcc -c objects.c
 
 objput: objput.c
-	gcc -o objput objput.c
+	gcc -o objput namechecking.o objects.o objput.c
 
 objget: objget.c
-	gcc -o objget objget.c
+	gcc -o objget namechecking.o objects.o objget.c
 	
 objlist: objlist.c
-	gcc -o objlist objlist.c
+	gcc -o objlist namechecking.o objects.o objlist.c
 
 build:	sample
 
