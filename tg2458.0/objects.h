@@ -11,8 +11,11 @@ typedef struct
 } Object;
 
 
-
+Object * object_newObject();
 int objects_createUserList();
+int objects_listObjects(char *user, int option);
+int objects_createObject(char *user, char *name, char *content);
+int objects_getObject(char *user, char *name);
 
 
 #endif

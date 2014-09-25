@@ -26,3 +26,22 @@ int objects_createUserList()
 
 	return file;
 }
+
+int objects_listObjects(char *user)
+{
+
+
+}
+
+int objects_listObjects(char *user, int option)
+{
+
+}
+int objects_createObject(char *user, char *name, char *content)
+{
+
+}
+int objects_getObject(char *user, char *name)
+{
+	
+}
