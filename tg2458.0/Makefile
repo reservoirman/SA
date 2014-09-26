@@ -1,12 +1,12 @@
 # A simple Makefile
 
 # List the object files in one place
-OBJ=sample.o countlines.o
+OBJ=namechecking.o objects.o linkedlist.o
 
 # The first target is the default if you just say "make".  In this
 # case, "build" relies on "sample", because I want the executable to be
 # called "sample"
-all: namechecking objects objput objget objlist 
+all: namechecking objects linkedlist objput objget objlist 
 
 namechecking:
 	gcc -c namechecking.c
@@ -14,14 +14,17 @@ namechecking:
 objects:
 	gcc -c objects.c
 
+linkedlist:
+	gcc -c linkedlist.c
+
 objput: objput.c
-	gcc -o objput namechecking.o objects.o objput.c
+	gcc -o objput $(OBJ) objput.c
 
 objget: objget.c
-	gcc -o objget namechecking.o objects.o objget.c
+	gcc -o objget $(OBJ) objget.c
 	
 objlist: objlist.c
-	gcc -o objlist namechecking.o objects.o objlist.c
+	gcc -o objlist $(OBJ) objlist.c
 
 build:	sample
 
