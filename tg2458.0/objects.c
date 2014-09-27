@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <unistd.h>	
-#include <fcntl.h>	//for open
 #include <string.h>
 #include <stdlib.h>
 #include "objects.h"
@@ -8,29 +7,34 @@
 
 static Item *object_list = 0;
 static Object *current_object = 0;
+static FILE *file;
 
 int objects_createUserList()
 {
-	int file = open("users.txt", O_RDONLY);
-	if (file >= 0)
+	int success = -1;
+	file = fopen("users.txt", "r");
+	if (file != 0)
 	{
 		current_object = (Object *)malloc(sizeof(Object));
 		current_object->contents = (char *)malloc(128);	//hardcoded; will change
 		current_object->name = "users.txt";
 		current_object->user = "*";
-		int nread = read(file, current_object->contents, 128);
+		int nread = fread(current_object->contents, sizeof(char), 128, file);
 
 		current_object->object_size = nread;
 		printf("User list created!  Here is the list: \n%s\n", current_object->contents);
 		printf("\n list name: %s \n", current_object->name);
 		printf("\n list object size: %d\n", (int)current_object->object_size);
+		success = 0;
+		object_list = linkedlist_newList((void *)current_object);
+		fclose(file);
 	}
-	object_list = linkedlist_newList((void *)current_object);
-	return file;
+	
+	return success;
 }
 
 //instantiates a new object and then adds it to the linked list
-int object_createObject(char *iUser, char *iName, char *content)
+int objects_createObject(char *iUser, char *iName, char *content)
 {
 	Object *new_object;
 	int filenamelength = strlen(iUser) + strlen(iName) + 5;
@@ -40,10 +44,10 @@ int object_createObject(char *iUser, char *iName, char *content)
 	strcpy(filename + strlen(iUser), iName);
 	strcpy(filename + strlen(iUser) + strlen(iName), ".txt\0");
 	
-	int file = open("users.txt", O_RDWR | O_TRUNC);
+	file = fopen(filename, "w+");
 	if (file >= 0)
 	{
-		int bytes_written = write(file, content, strlen(content));
+		int bytes_written = fwrite(content, sizeof(char), strlen(content), file);
 		if (bytes_written == strlen(content))
 		{
 			new_object = (Object *)malloc(sizeof(Object));
@@ -52,17 +56,27 @@ int object_createObject(char *iUser, char *iName, char *content)
 			new_object->name = iName;
 			new_object->user = iUser;
 			new_object->contents = content;
+			fclose(file);
+			linkedlist_insertItem(object_list, (void *)new_object);
 		}
 	}
 
-	linkedlist_insertItem(object_list, (void *)new_object);
+	
 
 	return 0;
 }
 
-int objects_listObjects(char *user, int option)
+int objects_listObjects(char *iUser, int option)
 {
-
+	while (object_list != 0)
+	{
+		current_object = (Object *)object_list->item;
+		if (strcmp(current_object->user, iUser) == 0)
+		{
+			printf("%s contents: %s\n", current_object->name, current_object->contents);
+		}
+		object_list = object_list->next;
+	}
 }
 
 //getObject retrieves the object

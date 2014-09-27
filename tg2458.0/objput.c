@@ -32,5 +32,11 @@ int main (int argv, char **argc)
 	}
 
 	objects_createUserList();
+	//test out whether directly assigning pointer to pointer for user and name is ok,
+	//across multiple objects.
+	objects_createObject("ts", "holla", "what is going on?");
+	objects_createObject("lk", "holla", "I dunno");
+	objects_createObject("ts", "holla1", "time to party");
+	objects_listObjects("ts", 0);
 
 }
