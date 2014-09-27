@@ -5,17 +5,33 @@
 #include <regex.h>
 #include "namechecking.h"
 
-#define tofind    "[a-Z0-9_]+"
+#define OBJECT_REGEX    "[a-Z0-9_]+"
+#define FILE_REGEX		"[a-Z0-9_]+.txt"
+
+#define OBJECT_ERROR "%s is not a valid object name.  \nCan only contain letters, digits, and underscores.\n"
+#define FILE_ERROR "%s is not a valid file name.  \nCan only contain letters, digits, and underscores, and must end in '.txt'\n"
 
 static regex_t re;
 regmatch_t match[2];
 
-int namechecking_check(char *name)
+int namechecking_check(char *name, NAME_TYPE which)
 {
 	int success = -1;
-	if (regcomp(&re, tofind, REG_EXTENDED | REG_ICASE) != 0)
+	char *regex;
+	const char *error_message;
+	if (which == FILES)
 	{
-	    fprintf(stderr, "Failed to compile regex '%s'\n", tofind);
+		regex = FILE_REGEX;
+		error_message = FILE_ERROR;
+	} 
+	else 
+	{
+		regex = OBJECT_REGEX;
+		error_message = OBJECT_ERROR;
+	}
+	if (regcomp(&re, regex, REG_EXTENDED | REG_ICASE) != 0)
+	{
+	    fprintf(stderr, "Failed to compile regex '%s'\n", regex);
 	}
 
 	if (regexec(&re, name, 2, match, REG_NOTBOL) == 0)
@@ -30,7 +46,7 @@ int namechecking_check(char *name)
     
 	if (success == -1)
 	{	
-		printf("%s is not a valid name.  Can only contain letters, digits, and underscores.\n", name);
+		printf(error_message, name);
 	} 
 
 	return success;

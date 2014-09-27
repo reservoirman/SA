@@ -12,12 +12,12 @@ static FILE *file;
 int objects_createUserList()
 {
 	int success = -1;
-	file = fopen("users.txt", "r");
+	file = fopen("userfile.txt", "r");
 	if (file != 0)
 	{
 		current_object = (Object *)malloc(sizeof(Object));
 		current_object->contents = (char *)malloc(128);	//hardcoded; will change
-		current_object->name = "users.txt";
+		current_object->name = "userfile.txt";
 		current_object->user = "*";
 		int nread = fread(current_object->contents, sizeof(char), 128, file);
 

@@ -6,7 +6,7 @@ OBJ=namechecking.o objects.o linkedlist.o
 # The first target is the default if you just say "make".  In this
 # case, "build" relies on "sample", because I want the executable to be
 # called "sample"
-all: namechecking objects linkedlist objput objget objlist 
+all: namechecking objects linkedlist objput objget objlist initializer
 
 namechecking:
 	gcc -c namechecking.c
@@ -25,6 +25,9 @@ objget: objget.c
 	
 objlist: objlist.c
 	gcc -o objlist $(OBJ) objlist.c
+
+initializer: initializer.c
+	gcc -o initializer $(OBJ) initializer.c
 
 build:	sample
 
@@ -45,8 +48,8 @@ test:	build
 	@echo "------------"
 	./sample " leading" "trailing " "blanks"  <test3
 
-exec: build
-	./sample $(ARG)
+exec: all
+	./initializer $(userfile)
 
 clean:
 	rm -f sample *.core *.o
