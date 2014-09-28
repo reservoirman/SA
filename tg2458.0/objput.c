@@ -4,26 +4,31 @@
 #include <stdlib.h>
 #include "objects.h"
 
-#define SIZE 100
+#define SIZE 0xFFFFFF
 char buffer[SIZE];
 
-static void objput (char *username, char * objname)
-{
-
-}
 
 int main (int argv, char **argc)
 {
 
-	int data_processed = read(0, buffer, SIZE);
-	printf("OBJPUT: Here are the contents: %s\n", buffer);
+	int data_processed = fread(buffer, sizeof(char), SIZE, stdin);
+
+	printf("OBJPUT: %s\n", buffer);
+	objects_createUserList();
 	
 	//if the user supplied all of the arguments
-	if (argv == 4)
+	if (argv == 6)
 	{
 		//print them out
+
+		objects_createObject(argc[2], argc[5], buffer);
+		printf("OBJPUT: Created a new object %s for user %s.\n", argc[5], argc[2]);	
+	}
+	else if (argv == 4)
+	{
+		//print them out
+		objects_createObject(argc[2], argc[3], buffer);
 		printf("OBJPUT: Created a new object %s for user %s.\n", argc[3], argc[2]);	
-		objput(argc[2], argc[3]);
 	}
 	//otherwise, remind the user that he needs to do that
 	else
@@ -31,7 +36,7 @@ int main (int argv, char **argc)
 		printf("OBJPUT: Please enter user name and object name.\n");
 	}
 
-	objects_createUserList();
+	
 	//test out whether directly assigning pointer to pointer for user and name is ok,
 	//across multiple objects.
 	
