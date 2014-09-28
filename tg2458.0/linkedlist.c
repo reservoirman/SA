@@ -3,32 +3,31 @@
 #include <string.h>
 #include "linkedlist.h"
 
-static Item *newItem;
 
-Item * linkedlist_newList(void *object)
+
+Item * linkedlist_newList(void *object, size_t size)
 {
 	Item *newList = (Item *)malloc(sizeof(Item));
-	newList->item = object;
-	newList->next = 0;
+	newList->item = malloc(size);
+	memcpy(newList->item, object, size);
+	newList->next = NULL;
 
 	return newList;
 }
 
-void linkedlist_insertItem(Item *list, void *object)
+void linkedlist_insertItem(Item *list, void *object, size_t size)
 {
-	newItem = (Item *)malloc(sizeof(Item));
-	newItem->item = object;
-	newItem->next = 0;
-	int i =1;
-	while (list->next != 0)
+	Item *newItem = (Item *)malloc(sizeof(Item));
+	newItem->item = malloc(size);
+	memcpy(newItem->item, object, size);
+	newItem->next = NULL;
+	int i = 1;
+	while (list->next != NULL)
 	{
-		printf("%d!!", i);
 		list = list->next;
 		i++;
 	}
-	printf("\n");
 	list->next = newItem;
-
 }
 
 void linkedlist_updateItem(Item *list, void *currentItem, void *updatedItem)
@@ -54,6 +53,21 @@ void linkedlist_updateItems(Item *list, void *currentItem, void *updatedItem)
 		}
 		list = list->next;
 	}
+}
+
+int linkedlist_searchItem(Item *list, void *currentItem)
+{
+	int success = -1;
+	while (list != 0)
+	{
+		if (strcmp((char *)list->item, (char *)currentItem) == 0)
+		{
+			success = 0;
+			break;
+		}
+		list = list->next;
+	}
+	return success;
 }
 
 void linkedlist_clearList(Item *list)

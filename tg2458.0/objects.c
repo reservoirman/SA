@@ -4,30 +4,75 @@
 #include <stdlib.h>
 #include "objects.h"
 #include "linkedlist.h"
+#include "namechecking.h"
 
-static Item *object_list = 0;
-static Object *current_object = 0;
+
+
+static Item *object_list = NULL;
+static Object *current_object = NULL;
+static Item **users_group_list;
 static FILE *file;
+static char line_from_users_list[MAXNAMELENGTH];
 
 int objects_createUserList()
 {
-	int success = -1;
-	file = fopen("userfile.txt", "r");
-	if (file != 0)
-	{
-		current_object = (Object *)malloc(sizeof(Object));
-		current_object->contents = (char *)malloc(128);	//hardcoded; will change
-		current_object->name = "userfile.txt";
-		current_object->user = "*";
-		int nread = fread(current_object->contents, sizeof(char), 128, file);
+	int success = -1, i = 0, j;
+	char initializer_filename[MAXNAMELENGTH];
+	file = fopen("initializer.txt", "r");
+	const char* space = " \n";
+	users_group_list = (Item **)malloc(sizeof(Item **));
 
-		current_object->object_size = nread;
-		printf("User list created!  Here is the list: \n%s\n", current_object->contents);
-		printf("\n list name: %s \n", current_object->name);
-		printf("\n list object size: %d\n", (int)current_object->object_size);
-		success = 0;
-		object_list = linkedlist_newList((void *)current_object);
-		fclose(file);
+
+	if (file != NULL)
+	{
+		//read the filename from initializer
+		if (fgets(initializer_filename, MAXNAMELENGTH, file) != NULL)
+		{
+			//open that file
+			fclose(file);
+			file = fopen(initializer_filename, "r");
+			if (file != NULL)
+			{
+				while (fgets(line_from_users_list, MAXNAMELENGTH, file) != NULL)
+				{
+					//take each line, tokenize it and store the first token as user, and the 
+					//subsequent tokens as the group(s) it belongs to 
+					char *token;
+					char *remaining = line_from_users_list;
+					
+					//obtain the user name
+					token = strtok_r(line_from_users_list, space, &remaining);
+					users_group_list[i] = linkedlist_newList((void *)token, strlen(token));
+					//printf("OBJECTS: user = %s\n", token);
+					while(token != NULL)
+					{
+						if ((token = strtok_r(NULL, space, &remaining)) != NULL)
+						{
+							linkedlist_insertItem(users_group_list[i], (void *)token, strlen(token));
+							//printf("OBJECTS: group = %s\n", token);	
+						}
+						
+					}
+					i++;
+				}
+				fclose(file);
+			}
+			
+		}
+
+		//test code; should be removed later
+		for (j = 0; j < i; j++)
+		{
+			printf("OBJECTS: user ");
+			Item *aaa = users_group_list[j];
+			while(aaa != NULL)
+			{
+				printf(" %s ", (char *)aaa->item);
+				aaa = aaa->next;
+			}
+			printf("!!!\n");
+		}
+
 	}
 	
 	return success;
@@ -57,7 +102,14 @@ int objects_createObject(char *iUser, char *iName, char *content)
 			new_object->user = iUser;
 			new_object->contents = content;
 			fclose(file);
-			linkedlist_insertItem(object_list, (void *)new_object);
+			if (object_list == NULL)
+			{
+				object_list = linkedlist_newList((void *)new_object, sizeof(*new_object));
+			}
+			else
+			{
+				linkedlist_insertItem(object_list, (void *)new_object, sizeof(*new_object));
+			}
 		}
 	}
 
@@ -68,7 +120,7 @@ int objects_createObject(char *iUser, char *iName, char *content)
 
 int objects_listObjects(char *iUser, int option)
 {
-	while (object_list != 0)
+	while (object_list != NULL)
 	{
 		current_object = (Object *)object_list->item;
 		if (strcmp(current_object->user, iUser) == 0)
