@@ -12,8 +12,10 @@ int main()
 	result |= objects_createObject("lk", "holla", "I dunno");
 	result |= objects_createObject("lk", "gangsta", "I dunno");
 	result |= objects_createObject("ts", "gangsta2", "time to party");
+	result |= objects_createObject("tu", "didthiswork", "time to party");
 	result |= objects_listObjects("ts", 0);
 	result |= objects_listObjects("lk", 0);
+	result |= objects_listObjects("tu", 0);
 
 	printf("\n\n");
 
@@ -25,6 +27,7 @@ int main()
 	{
 		printf("objput tests failed.\n");
 	}
+	fprintf(stderr, "Come back home\n");
 
 	return 0;
 }

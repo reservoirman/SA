@@ -16,6 +16,21 @@ static Item **users_group_list = NULL;
 static FILE *file = NULL;
 static char line_from_users_list[MAXNAMELENGTH];
 
+//helper function to determine whether the user is valid
+static int _validUser(char *iUser)
+{
+	int success = -1, i, total_users = objects_createUserList();
+	for (i =0; i < total_users; i++)
+	{
+		if (strcmp((char *)users_group_list[i]->item, (char *)iUser) == 0)
+		{
+			success = 0;
+			break;
+		}
+
+	}
+	return success;
+}
 
 int objects_createUserList()
 {
@@ -56,7 +71,7 @@ int objects_createUserList()
 						}
 						
 					}
-					i++;
+					i++; success = i;
 				}
 				fclose(file);
 			}
@@ -105,9 +120,19 @@ static char * _deconstructFileName(char *user, char *fileName)
 //instantiates a new object and then adds it to the linked list
 int objects_createObject(char *iUser, char *iName, char *content)
 {
+	int success = -1;
+
+	//check if iUser is a valid user
+	if (_validUser(iUser) == -1)
+	{
+		return success;		
+	}
+
 	Object *new_object;
+
 	char *filename = _constructFileName(iUser, iName);
 	
+	//creating the file for the object
 	file = fopen(filename, "w+");
 	if (file >= 0)
 	{
@@ -117,20 +142,30 @@ int objects_createObject(char *iUser, char *iName, char *content)
 			fclose(file);
 		}
 	}
+	//creating the access control list for the object
+
 
 	return 0;
 }
 
+
 int objects_listObjects(char *iUser, int option)
 {
 	int success = -1;
+
+	//check if iUser is a valid user
+	if (_validUser(iUser) == -1)
+	{
+		return success;		
+	}
+
 	char directory_name[MAXNAMELENGTH];
-	DIR *dp = opendir(getcwd(directory_name, MAXNAMELENGTH));
+	DIR *dp;
 	struct dirent *entry;
 	struct stat statbuf;
-	if (dp != NULL)
+
+	if ((dp = opendir(getcwd(directory_name, MAXNAMELENGTH))) != NULL)
 	{
-		printf("opened!\n");
 		while ((entry = readdir(dp)) != NULL)
 		{
 			//obtain the stat structure for this directory entry
@@ -140,7 +175,17 @@ int objects_listObjects(char *iUser, int option)
 				if (strncmp(iUser, entry->d_name, strlen(iUser)) == 0)
 				{
 					char *object_name = _deconstructFileName(iUser, entry->d_name);
-					printf("%s\n", object_name);
+
+
+					if (option == 1)
+					{
+						printf("%*s \t%d\n", MAXNAMELENGTH, object_name, (int)statbuf.st_size);				
+					}
+					else
+					{
+						printf("%*s\n", MAXNAMELENGTH, object_name);
+					}
+
 					free(object_name);
 				}
 			}
@@ -154,6 +199,13 @@ int objects_listObjects(char *iUser, int option)
 char * objects_readObject(char *user, char *name)
 {
 	char *success = NULL;
+
+	//check if iUser is a valid user
+	if (_validUser(user) == -1)
+	{
+		return success;		
+	}
+
 	char *filename = _constructFileName(user, name);
 	
 	file = fopen(filename, "r");

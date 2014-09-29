@@ -38,7 +38,6 @@ int namechecking_check(char *name, NAME_TYPE which)
 	{
 		if (match[0].rm_eo - match[0].rm_so == strlen(name))
 		{
-			printf("<<%s>> string length: %d \n", name, (int)strlen(name));
 			success = 0;
 		}
 		        
@@ -51,4 +50,13 @@ int namechecking_check(char *name, NAME_TYPE which)
 
 	return success;
 
+}
+
+//this is used to copy the optarg which disappears
+char * namechecking_copyName(char *name)
+{
+	char *user_name = (char *)malloc(strlen(optarg));
+	strcpy(user_name, optarg);
+
+	return user_name;
 }

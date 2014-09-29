@@ -9,7 +9,7 @@ Item * linkedlist_newList(void *object, size_t size)
 {
 	Item *newList = (Item *)malloc(sizeof(Item));
 	newList->item = malloc(size);
-	memcpy(newList->item, object, size);
+	strcpy(newList->item, object);
 	newList->next = NULL;
 
 	return newList;
@@ -19,7 +19,7 @@ void linkedlist_insertItem(Item *list, void *object, size_t size)
 {
 	Item *newItem = (Item *)malloc(sizeof(Item));
 	newItem->item = malloc(size);
-	memcpy(newItem->item, object, size);
+	strcpy(newItem->item, object);
 	newItem->next = NULL;
 	int i = 1;
 	while (list->next != NULL)

@@ -29,7 +29,6 @@ int main(int argc, char **argv)
 	//writing the file didn't work, so write the default
 	if (success == -1)
 	{
-
 		int bytes_written = fwrite(DEFAULT_FILE, sizeof(char), DEFAULT_LENGTH, file);
 		if (bytes_written == DEFAULT_LENGTH)
 		{

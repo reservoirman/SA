@@ -3,44 +3,72 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include "objects.h"
+#include "namechecking.h"
 
 
 
 
 
-int main (int argv, char **argc)
+int main (int argc, char **argv)
 {
-	//if the user supplied all of the arguments
-	if (argv == 6)
-	{
-		//print them out
 
-		char *contents = objects_readObject(argc[2], argc[5]);
+	int opt, show_length = 0, success = 0;
+	char *user_name = NULL, *group_name = NULL;
+
+	while ((opt = getopt(argc, argv, ":u:g:")) != -1)
+	{
+		switch (opt)
+		{
+			case 'u':
+				if (namechecking_check(optarg, OBJECTS) != 0)
+				{
+					return -1;
+				}
+				user_name = namechecking_copyName(optarg);
+				break;
+			case 'g':
+				if (namechecking_check(optarg, OBJECTS) != 0)
+				{
+					return -1;
+				}
+				group_name = namechecking_copyName(optarg);
+				break;
+			case ':':
+			printf("Option needs a value\n");
+			break;
+			case '?':
+			printf("Unknown option: %c\n", optopt);
+			break;
+			default:
+			printf ("Invalid input.  Please try again.\n");
+			break;
+
+		}
+	}
+
+	if (user_name == NULL)
+	{
+		printf("Please enter a user name, such as \"-u ts\"\n");
+	}
+	else if (argv[optind] == NULL)
+	{
+		printf("Please enter an object name following the user name.\n");
+	}
+	else if (namechecking_check(argv[optind], OBJECTS) == 0)
+	{
+		char *contents = objects_readObject(user_name, argv[optind]);
 		if (contents != NULL)
 		{
-			printf("OBJGET: Retrieved object %s for user %s.\n", argc[5], argc[2]);		
-			if (strcmp("holla", "hollaback") == 0)
-			{
-				printf("holla = hollaback apparently\n");
-			}
 			printf("%s\n", contents);
 		}
-		
-
-	}
-	else if (argv == 4)
-	{
-		char *contents = objects_readObject(argc[2], argc[3]);
-		if (contents != NULL)
+		else
 		{
-			printf("OBJGET: Retrieved object %s for user %s.\n", argc[3], argc[2]);		
-			printf("%s\n", contents);
+			printf("%s is not a valid user, and/or %s is not a valid object.  Please try again. \n", user_name, argv[optind]);
 		}
 	}
-	//otherwise, remind the user that he needs to do that
-	else
-	{
-		printf("OBJGET: Please enter user name and object name.\n");
-	}	
+	free(user_name);
+	free(group_name);
+
+
 
 }

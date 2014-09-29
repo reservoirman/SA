@@ -8,6 +8,7 @@ typedef enum { FILES, OBJECTS} NAME_TYPE;
 //function prototype 
 int namechecking_check(char *name, NAME_TYPE which);
 
+char *namechecking_copyName(char *name);
 
 
 

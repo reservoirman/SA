@@ -2,37 +2,66 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include "namechecking.h"
 #include "objects.h"
 
 static char buffer[OBJECT_SIZE];
 
 
-int main (int argv, char **argc)
+int main (int argc, char **argv)
 {
-
-	int data_processed = fread(buffer, sizeof(char), OBJECT_SIZE, stdin);
-
-	printf("OBJPUT: %s\n", buffer);
-	objects_createUserList();
+	int opt, show_length = 0, success = 0;
+	char *user_name = NULL, *group_name = NULL;
 	
-	//if the user supplied all of the arguments
-	if (argv == 6)
+	fread(buffer, sizeof(char), OBJECT_SIZE, stdin);
+	while ((opt = getopt(argc, argv, ":u:g:")) != -1)
 	{
-		//print them out
+		switch (opt)
+		{
+			case 'u':
+				if (namechecking_check(optarg, OBJECTS) != 0)
+				{
+					return -1;
+				}
+				user_name = namechecking_copyName(optarg);
+				break;
+			case 'g':
+				if (namechecking_check(optarg, OBJECTS) != 0)
+				{
+					return -1;
+				}
+				group_name = namechecking_copyName(optarg);
+				break;
+			case ':':
+			printf("Option needs a value\n");
+			break;
+			case '?':
+			printf("Unknown option: %c\n", optopt);
+			break;
+			default:
+			printf ("Invalid input.  Please try again.\n");
+			break;
 
-		objects_createObject(argc[2], argc[5], buffer);
-		printf("OBJPUT: Created a new object %s for user %s.\n", argc[5], argc[2]);	
+		}
 	}
-	else if (argv == 4)
+
+	if (user_name == NULL)
 	{
-		//print them out
-		objects_createObject(argc[2], argc[3], buffer);
-		printf("OBJPUT: Created a new object %s for user %s.\n", argc[3], argc[2]);	
+		printf("Please enter a user name, such as \"-u ts\"\n");
 	}
-	//otherwise, remind the user that he needs to do that
-	else
+	else if (argv[optind] == NULL)
 	{
-		printf("OBJPUT: Please enter user name and object name.\n");
+		printf("Please enter an object name following the user name\n");
 	}
+	else if (namechecking_check(argv[optind], OBJECTS) == 0)
+	{
+		if (objects_createObject(user_name, argv[optind], buffer) == -1)
+		{
+			printf("%s is not a valid user.  Please try again.\n", user_name);
+		}
+		else printf("OBJPUT: Created a new object %s for user %s.\n", argv[optind], user_name);	
+	}
+	free(user_name);
+	free(group_name);
 
 }
