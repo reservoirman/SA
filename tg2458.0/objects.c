@@ -2,6 +2,8 @@
 #include <unistd.h>	
 #include <string.h>
 #include <stdlib.h>
+#include <dirent.h>
+#include <sys/stat.h>
 #include "objects.h"
 #include "linkedlist.h"
 #include "namechecking.h"
@@ -13,6 +15,7 @@ static Object *current_object = NULL;
 static Item **users_group_list = NULL;
 static FILE *file = NULL;
 static char line_from_users_list[MAXNAMELENGTH];
+
 
 int objects_createUserList()
 {
@@ -90,6 +93,15 @@ static char * _constructFileName(char *user, char *name)
 	return filename;
 }
 
+static char * _deconstructFileName(char *user, char *fileName)
+{
+	int object_name_length = strlen(fileName) - strlen(user) - 4;
+	char *object_name = (char *)malloc(object_name_length);
+	strncpy(object_name, fileName + strlen(user), object_name_length);
+	object_name[object_name_length] = '\0';
+	return object_name;
+}
+
 //instantiates a new object and then adds it to the linked list
 int objects_createObject(char *iUser, char *iName, char *content)
 {
@@ -111,15 +123,31 @@ int objects_createObject(char *iUser, char *iName, char *content)
 
 int objects_listObjects(char *iUser, int option)
 {
-	while (object_list != NULL)
+	int success = -1;
+	char directory_name[MAXNAMELENGTH];
+	DIR *dp = opendir(getcwd(directory_name, MAXNAMELENGTH));
+	struct dirent *entry;
+	struct stat statbuf;
+	if (dp != NULL)
 	{
-		current_object = (Object *)object_list->item;
-		if (strcmp(current_object->user, iUser) == 0)
+		printf("opened!\n");
+		while ((entry = readdir(dp)) != NULL)
 		{
-			printf("%s contents: %s\n", current_object->name, current_object->contents);
+			//obtain the stat structure for this directory entry
+			stat(entry->d_name, &statbuf);
+			if (S_ISREG(statbuf.st_mode))	//if this is a file
+			{
+				if (strncmp(iUser, entry->d_name, strlen(iUser)) == 0)
+				{
+					char *object_name = _deconstructFileName(iUser, entry->d_name);
+					printf("%s\n", object_name);
+					free(object_name);
+				}
+			}
 		}
-		object_list = object_list->next;
+	
 	}
+	closedir(dp);
 }
 
 //getObject retrieves the object
@@ -135,6 +163,6 @@ char * objects_readObject(char *user, char *name)
 		success = buffer;
 		fclose(file);
 	}
-
+	free(filename);
 	return success;
 }

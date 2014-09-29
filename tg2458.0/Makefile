@@ -37,19 +37,24 @@ build:	sample
 sample: $(OBJ)
 	cc -o $@ $(OBJ)
 
+test_objput: test_objput.c
+	gcc -o test_objput $(OBJ) test_objput.c
+
 # Before testing, we must compile.  
 # Lines preceeded by @ aren't echoed before executing
 # Execution will stop if a program has a non-zero return code;
 # precede the line with a - to override that
-test:	build
-	./sample a b "def" "hello world" <test1
+test:	clean testclean namechecking objects linkedlist objput test_objput  
+	@echo "Testing objput:"
+	./test_objput 
 	@echo "------------"
-	./sample <test2
-	@echo "------------"
-	./sample " leading" "trailing " "blanks"  <test3
+	
 
 exec: all
 	./initializer $(userfile)
 
 clean:
 	rm -f objput objlist objget initializer *.core *.o
+
+testclean:
+	rm test_objput
