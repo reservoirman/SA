@@ -1,6 +1,7 @@
 #include <stdlib.h>		//for malloc
 #include <stdio.h>		//for printf
 #include "linkedlist.h"
+#include "objects.h"
 
 int main()
 {
@@ -8,14 +9,14 @@ int main()
 	//across multiple objects.
 	int result = 0;
 
-	result |= objects_createObject("ts", "holla", "what is going on?");
-	result |= objects_createObject("lk", "holla", "I dunno");
-	result |= objects_createObject("lk", "gangsta", "I dunno");
-	result |= objects_createObject("ts", "gangsta2", "time to party");
-	result |= objects_createObject("tu", "didthiswork", "time to party");
+	result |= objects_createObject("ts", "holla", "what is going on?", DATA);
+	result |= objects_createObject("lk", "holla", "I dunno", DATA);
+	result |= objects_createObject("lk", "gangsta", "I dunno", DATA);
+	result |= objects_createObject("ts", "gangsta2", "time to party", DATA);
+	//result |= objects_createObject("tu", "didthiswork", "time to party", DATA);
 	result |= objects_listObjects("ts", 0);
 	result |= objects_listObjects("lk", 0);
-	result |= objects_listObjects("tu", 0);
+	//result |= objects_listObjects("tu", 0);
 
 	printf("\n\n");
 

@@ -55,11 +55,21 @@ int main (int argc, char **argv)
 	}
 	else if (namechecking_check(argv[optind], OBJECTS) == 0)
 	{
-		if (objects_createObject(user_name, argv[optind], buffer) == -1)
+		if (objects_createObject(user_name, argv[optind], buffer, DATA) == -1)
 		{
 			printf("%s is not a valid user.  Please try again.\n", user_name);
 		}
-		else printf("OBJPUT: Created a new object %s for user %s.\n", argv[optind], user_name);	
+		else 
+		{
+			char *acl = (char *)malloc(MAXNAMELENGTH + 20);
+			sprintf(acl, "%s.*\trwxpv\n", user_name);
+			printf("ACL: %s\n", acl);
+			if(objects_createObject(user_name, argv[optind], acl, ACL) == 0)
+			{	
+				free(acl);
+				printf("OBJPUT: Created a new object %s for user %s.\n", argv[optind], user_name);
+			}
+		}	
 	}
 	free(user_name);
 	free(group_name);

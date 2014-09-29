@@ -98,14 +98,27 @@ int objects_createUserList()
 
 static char * _constructFileName(char *user, char *name)
 {
-	int filenamelength = strlen(user) + strlen(name) + 5;
+	int filenamelength = strlen(user) + strlen(name) + 4;
 	char *filename = (char *)malloc(filenamelength);
 	//constructing the filename
 	strcpy(filename, user);
 	strcpy(filename + strlen(user), name);
-	strcpy(filename + strlen(user) + strlen(name), ".txt\0");
+	strcpy(filename + strlen(user) + strlen(name), ".txt");
 
 	return filename;
+}
+
+static char * _constructACLName(char *user, char *name)
+{
+	int aclnamelength = strlen(user) + strlen(name) + 7;
+	char *aclname = (char *)malloc(aclnamelength);
+	
+	strcpy(aclname, "acl");
+	strcpy(aclname + 3, user);
+	strcpy(aclname + 3 + strlen(user), name);
+	strcpy(aclname + 3 + strlen(user) + strlen(name), ".txt");
+	
+	return aclname;
 }
 
 static char * _deconstructFileName(char *user, char *fileName)
@@ -118,7 +131,7 @@ static char * _deconstructFileName(char *user, char *fileName)
 }
 
 //instantiates a new object and then adds it to the linked list
-int objects_createObject(char *iUser, char *iName, char *content)
+int objects_createObject(char *iUser, char *iName, char *content, ObjectType which)
 {
 	int success = -1;
 
@@ -130,8 +143,15 @@ int objects_createObject(char *iUser, char *iName, char *content)
 
 	Object *new_object;
 
-	char *filename = _constructFileName(iUser, iName);
-	
+	char *filename = NULL;
+	if (which == DATA)
+	{
+		filename = _constructFileName(iUser, iName);
+	}
+	else
+	{
+		filename = _constructACLName(iUser, iName);
+	}
 	//creating the file for the object
 	file = fopen(filename, "w+");
 	if (file > 0)
@@ -139,6 +159,7 @@ int objects_createObject(char *iUser, char *iName, char *content)
 		int bytes_written = fwrite(content, sizeof(char), strlen(content), file);
 		if (bytes_written == strlen(content))
 		{
+			//create ACL here with default permissions u.* rwxpv
 			success = 0;
 		}
 		fclose(file);
