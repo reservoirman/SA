@@ -79,6 +79,7 @@ int objects_createUserList()
 		}
 
 		//test code; should be removed later
+		/*
 		for (j = 0; j < i; j++)
 		{
 			printf("OBJECTS: user ");
@@ -89,7 +90,7 @@ int objects_createUserList()
 				aaa = aaa->next;
 			}
 			printf("!!!\n");
-		}
+		}*/
 
 	}
 	
@@ -218,7 +219,7 @@ int objects_listObjects(char *iUser, int option)
 }
 
 //getObject retrieves the object
-char * objects_readObject(char *user, char *name)
+char * objects_readObject(char *user, char *name, ObjectType which)
 {
 	char *success = NULL;
 
@@ -228,8 +229,16 @@ char * objects_readObject(char *user, char *name)
 		return success;		
 	}
 
-	char *filename = _constructFileName(user, name);
 	
+	char *filename = NULL;
+	if (which == DATA)
+	{
+		filename = _constructFileName(user, name);
+	}
+	else 
+	{
+		filename = _constructACLName(user, name);
+	}
 	file = fopen(filename, "r");
 	if (file > 0)
 	{

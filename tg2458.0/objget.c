@@ -56,7 +56,51 @@ int main (int argc, char **argv)
 	}
 	else if (namechecking_check(argv[optind], OBJECTS) == 0)
 	{
-		char *contents = objects_readObject(user_name, argv[optind]);
+		//check the ACL of this file to see if this user has permission to do this
+		char *acl = objects_readObject(user_name, argv[optind], ACL);
+		if (acl == NULL)
+		{
+			printf("%s is not a valid user, and/or %s is not a valid object.  Please try again. \n", user_name, argv[optind]);
+		}
+		else
+		{
+			//break it up into three tokens- user, group(s), and ops
+			char *acl_ref =acl, *token = strtok_r(acl, ".", &acl_ref);
+			
+			if (token != NULL && strncmp(token, user_name, strlen(user_name)) == 0)
+			{
+				token = strtok_r(NULL, "\t ", &acl_ref);
+				
+				if (token != NULL && token[0] == '*' || strncmp(token, group_name, strlen(group_name)) == 0)
+				{
+					token = strtok_r(NULL, "\n", &acl_ref);
+					char read = 'r';
+					if (token != NULL && strstr(token, &read) != NULL)
+					{
+						char *contents = objects_readObject(user_name, argv[optind], DATA);
+						if (contents != NULL)
+						{
+							printf("%s\n", contents);
+							//free(contents);
+						}
+						
+					}
+					else
+					{
+						printf("User %s does not have permission to read this object.\n", user_name);
+					}
+					
+				}
+				else
+				{
+					printf("Group %s does not have permission to read this object.\n", group_name);
+				}
+			} 
+		
+		}
+			
+/*
+		char *contents = objects_readObject(user_name, argv[optind], DATA);
 		if (contents != NULL)
 		{
 			printf("%s\n", contents);
@@ -64,7 +108,7 @@ int main (int argc, char **argv)
 		else
 		{
 			printf("%s is not a valid user, and/or %s is not a valid object.  Please try again. \n", user_name, argv[optind]);
-		}
+		}*/
 	}
 	free(user_name);
 	free(group_name);
