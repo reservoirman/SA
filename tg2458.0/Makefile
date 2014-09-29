@@ -57,4 +57,4 @@ clean:
 	rm -f objput objlist objget initializer *.core *.o
 
 testclean:
-	rm test_objput
+	rm -f test_objput

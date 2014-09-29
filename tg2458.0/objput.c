@@ -35,18 +35,4 @@ int main (int argv, char **argc)
 		printf("OBJPUT: Please enter user name and object name.\n");
 	}
 
-	
-	//test out whether directly assigning pointer to pointer for user and name is ok,
-	//across multiple objects.
-	
-	objects_createObject("ts", "holla", "what is going on?");
-	objects_createObject("lk", "holla", "I dunno");
-	objects_createObject("ts", "holla1", "time to party");
-	objects_listObjects("ts", 0);
-	if (strncmp("holla", "hollaback", strlen("holla")) == 0)
-	{
-		printf("holla = hollaback apparently\n");
-	}
-
-
 }
