@@ -134,18 +134,19 @@ int objects_createObject(char *iUser, char *iName, char *content)
 	
 	//creating the file for the object
 	file = fopen(filename, "w+");
-	if (file >= 0)
+	if (file > 0)
 	{
 		int bytes_written = fwrite(content, sizeof(char), strlen(content), file);
 		if (bytes_written == strlen(content))
 		{
-			fclose(file);
+			success = 0;
 		}
+		fclose(file);
 	}
 	//creating the access control list for the object
 
 
-	return 0;
+	return success;
 }
 
 
@@ -209,7 +210,7 @@ char * objects_readObject(char *user, char *name)
 	char *filename = _constructFileName(user, name);
 	
 	file = fopen(filename, "r");
-	if (file >= 0)
+	if (file > 0)
 	{
 		int bytes_read = fread(buffer, sizeof(char), OBJECT_SIZE, file);
 		success = buffer;
