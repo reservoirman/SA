@@ -4,14 +4,13 @@
 #include <stdlib.h>
 #include "objects.h"
 
-#define SIZE 0xFFFFFF
-char buffer[SIZE];
+static char buffer[OBJECT_SIZE];
 
 
 int main (int argv, char **argc)
 {
 
-	int data_processed = fread(buffer, sizeof(char), SIZE, stdin);
+	int data_processed = fread(buffer, sizeof(char), OBJECT_SIZE, stdin);
 
 	printf("OBJPUT: %s\n", buffer);
 	objects_createUserList();
@@ -44,5 +43,10 @@ int main (int argv, char **argc)
 	objects_createObject("lk", "holla", "I dunno");
 	objects_createObject("ts", "holla1", "time to party");
 	objects_listObjects("ts", 0);
+	if (strncmp("holla", "hollaback", strlen("holla")) == 0)
+	{
+		printf("holla = hollaback apparently\n");
+	}
+
 
 }
