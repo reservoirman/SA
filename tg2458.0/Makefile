@@ -54,6 +54,7 @@ test_objput: test_objput.c
 # precede the line with a - to override that
 test:	all  
 	@echo "Testing objput:"
+	./initializer $(userfile)
 	./objput -u lk holla < README
 	./objget -u lk holla
 	./objlist -u lk
