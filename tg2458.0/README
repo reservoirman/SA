@@ -1,3 +1,1 @@
-This is a program that echos its arguments and counts the number of
-input lines.  Behavior if the last line does not end in \n is undefined.
-The arguments have no particular syntax.
+This is homework assignment 1.  It is an object store providing access control lists for its objects.

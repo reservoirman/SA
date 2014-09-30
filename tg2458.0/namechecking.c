@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <regex.h>
 #include "namechecking.h"
+#include "objects.h"
 
 #define OBJECT_REGEX    "[a-Z0-9_]+"
 #define FILE_REGEX		"[a-Z0-9_]+.txt"
@@ -55,8 +56,62 @@ int namechecking_check(char *name, NAME_TYPE which)
 //this is used to copy the optarg which disappears
 char * namechecking_copyName(char *name)
 {
-	char *user_name = (char *)malloc(strlen(optarg));
-	strcpy(user_name, optarg);
+	char *user_name = (char *)malloc(strlen(name));
+	strcpy(user_name, name);
 
 	return user_name;
+}
+
+
+int namechecking_validateInputs(char *user_name, char *group_name, char *object_name)
+{
+	int success = -1;
+
+	//if the user or object names are missing, bail out
+	if (user_name == NULL)
+	{
+		printf("Please enter a user name, such as \"-u ts\"\n");
+	}
+	else if (object_name == NULL)
+	{
+		printf("Please enter an object name following the user name\n");
+	}
+	else 
+	{
+		//checking if the user, group, and object names are syntactically valid
+		int isValid = 0;
+		isValid |= namechecking_check(user_name, OBJECTS);
+		isValid |= namechecking_check(object_name, OBJECTS);
+		if (group_name == NULL)
+		{
+
+			group_name = (char *)malloc(1);
+			group_name[0] = '*';
+		}
+		else isValid |= namechecking_check(group_name, OBJECTS);
+
+		//if the user, group and object names are syntactically valid
+		if (isValid == 0)
+		{
+			//check if the user and group are valid
+			ValidType result = objects_isValidUserGroup(user_name, group_name);
+			switch (result)
+			{
+				case BADUSER:
+					printf("%s is not a valid user!  Please try again.\n", user_name);
+					break;
+				case BADGROUP:
+					printf("%s is not a valid group for %s!  Please try again.\n", group_name, user_name);
+					break;
+				case GOOD:
+					success = 0;
+				break;
+			}
+		}
+
+	}
+	//free(user_name);
+	//free(group_name);
+
+	return success;
 }

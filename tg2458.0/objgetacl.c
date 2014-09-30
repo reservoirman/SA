@@ -3,17 +3,17 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include "objects.h"
-#include "namechecking.h"
 #include "aclchecking.h"
+#include "namechecking.h"
 
-
+static char buffer[OBJECT_SIZE];
 
 
 int main (int argc, char **argv)
 {
-
 	int opt, success = 0;
 	char *user_name = NULL, *group_name = NULL;
+
 
 	while ((opt = getopt(argc, argv, ":u:g:")) != -1)
 	{
@@ -38,21 +38,24 @@ int main (int argc, char **argv)
 		}
 	}
 
-	//if the user, group, and object are all fine and dandy:
+	//if the user and group are valid, and if the names are all synctactically correct:
 	if (namechecking_validateInputs(user_name, group_name, argv[optind]) == 0)
-	{	
-		//check if this object already exists		
+	{
+		//check if this object exists		
 		char *acl = objects_readObject(user_name, argv[optind], ACL);
 		if (acl != NULL)
 		{
 			//if so, check the acl to see if this user is 
-			//allowed to read from the file
-			if (aclchecking_isValid(user_name, group_name, acl, "r\0", (char *)"read from the object", 0) == 0)
+			//allowed to read out the acl
+			if (aclchecking_isValid(user_name, group_name, acl, "v\0", (char *)"view this object's ACL", 0) == 0)
 			{
-				//if we do have permission, let's go ahead and read the file
-				char *contents = objects_readObject(user_name, argv[optind], DATA);
-				if (contents != NULL)
-				printf("%s", contents);
+				//read out the ACL and print it to the console
+				char *theACL = objects_readObject(user_name, argv[optind], ACL);
+				if (theACL != NULL)
+				{
+					printf("%s\n", aclchecking_getACL());	
+				}
+				
 			}
 		}
 		else
@@ -60,10 +63,5 @@ int main (int argc, char **argv)
 			printf("%s is not a valid object.  Please try again. \n", argv[optind]);
 		}
 	}
-
-	free(user_name);
-	free(group_name);
-
-
 
 }

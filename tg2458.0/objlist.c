@@ -34,7 +34,7 @@ int main (int argc, char **argv)
 
 		}
 	}
-
+	
 	if (user_name == NULL)
 	{
 		printf("Please enter a user name, such as \"-u ts\"\n");

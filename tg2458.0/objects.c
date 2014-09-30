@@ -16,23 +16,7 @@ static Item **users_group_list = NULL;
 static FILE *file = NULL;
 static char line_from_users_list[MAXNAMELENGTH];
 
-//helper function to determine whether the user is valid
-static int _validUser(char *iUser)
-{
-	int success = -1, i, total_users = objects_createUserList();
-	for (i =0; i < total_users; i++)
-	{
-		if (strcmp((char *)users_group_list[i]->item, (char *)iUser) == 0)
-		{
-			success = 0;
-			break;
-		}
-
-	}
-	return success;
-}
-
-int objects_createUserList()
+static int _createUserList()
 {
 	int success = -1, i = 0, j;
 	char initializer_filename[MAXNAMELENGTH];
@@ -97,6 +81,33 @@ int objects_createUserList()
 	return success;
 }
 
+ValidType objects_isValidUserGroup(char *iUser, char *iGroup)
+{
+	ValidType success = BADUSER;
+	int i, total_users = _createUserList();
+	for (i =0; i < total_users; i++)
+	{
+		//if iUser is found in the list of users
+		if (strcmp((char *)users_group_list[i]->item, (char *)iUser) == 0)
+		{
+			//if iGroup is found in the list of groups for iUser
+			if (iGroup[0] == '*' || linkedlist_searchItem(users_group_list[i], iGroup) == 0)
+			{
+				//iUser and iGroup are valid!
+				success = GOOD;
+			}
+			else
+			{
+				success = BADGROUP;
+			}
+
+			break;
+		}
+
+	}
+	return success;
+}
+
 static char * _constructFileName(char *user, char *name)
 {
 	int filenamelength = strlen(user) + strlen(name) + 4;
@@ -136,12 +147,6 @@ int objects_createObject(char *iUser, char *iName, char *content, ObjectType whi
 {
 	int success = -1;
 
-	//check if iUser is a valid user
-	if (_validUser(iUser) == -1)
-	{
-		return success;		
-	}
-
 	Object *new_object;
 
 	char *filename = NULL;
@@ -175,12 +180,6 @@ int objects_createObject(char *iUser, char *iName, char *content, ObjectType whi
 int objects_listObjects(char *iUser, int option)
 {
 	int success = -1;
-
-	//check if iUser is a valid user
-	if (_validUser(iUser) == -1)
-	{
-		return success;		
-	}
 
 	char directory_name[MAXNAMELENGTH];
 	DIR *dp;
@@ -218,19 +217,11 @@ int objects_listObjects(char *iUser, int option)
 	closedir(dp);
 }
 
-//getObject retrieves the object
+//readObject retrieves the object
 char * objects_readObject(char *user, char *name, ObjectType which)
 {
-	char *success = NULL;
+	char *success = NULL, *filename = NULL;
 
-	//check if iUser is a valid user
-	if (_validUser(user) == -1)
-	{
-		return success;		
-	}
-
-	
-	char *filename = NULL;
 	if (which == DATA)
 	{
 		filename = _constructFileName(user, name);
