@@ -6,7 +6,10 @@ OBJ=aclchecking.o namechecking.o objects.o linkedlist.o
 # The first target is the default if you just say "make".  In this
 # case, "build" relies on "sample", because I want the executable to be
 # called "sample"
-all: clean aclchecking namechecking objects linkedlist objtestacl objgetacl objsetacl objput objget objlist initializer
+all: clean messaging aclchecking namechecking objects linkedlist objtestacl objgetacl objsetacl objput objget objlist initializer
+
+messaging:
+	gcc -c messaging.c
 
 aclchecking:
 	gcc -c aclchecking.c
