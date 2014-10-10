@@ -3,15 +3,6 @@
 
 #define OBJECT_SIZE 0xFFFFFF
 
-typedef struct 
-{
-	char * user;
-	size_t object_size;
-	char * contents;
-	char * name;
-
-} Object;
-
 typedef enum {DATA, ACL} ObjectType;
 typedef enum {BADUSER = -2, BADGROUP = -1, GOOD = 0} ValidType;  
 

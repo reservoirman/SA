@@ -1,9 +1,9 @@
-#include <stdio.h>
-#include <unistd.h>	
-#include <string.h>
-#include <stdlib.h>
-#include <dirent.h>
-#include <sys/stat.h>
+#include <stdio.h>		//for fopen, fclose, fgets
+#include <unistd.h>		//for NULL
+#include <string.h>		//for strcpy, memcpy, strtok_r, strcmp, strlen
+#include <stdlib.h>		//for malloc, free
+#include <dirent.h>		//for opendir, getcwd, readdir, closedir
+#include <sys/stat.h>	//for stat, S_ISREG
 #include "objects.h"
 #include "linkedlist.h"
 #include "namechecking.h"
@@ -11,7 +11,6 @@
 static char buffer[OBJECT_SIZE];
 
 static Item *object_list = NULL;
-static Object *current_object = NULL;
 static Item **users_group_list = NULL;
 static FILE *file = NULL;
 static char line_from_users_list[MAXNAMELENGTH];
@@ -146,8 +145,6 @@ static char * _deconstructFileName(char *user, char *fileName)
 int objects_createObject(char *iUser, char *iName, char *content, ObjectType which)
 {
 	int success = -1;
-
-	Object *new_object;
 
 	char *filename = NULL;
 	if (which == DATA)
