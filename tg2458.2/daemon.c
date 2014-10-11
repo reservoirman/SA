@@ -50,6 +50,7 @@ static void _messageDaemon()
 			else
 			{
 				printf("Msgrcv failed! %s.  \nReturn value %d\nErrno %d\n", strerror(errno), message_queue_id, errno);
+				break;
 			}
 			
 		}		
@@ -58,6 +59,7 @@ static void _messageDaemon()
 	{
 		printf("Message queue creation failed! %s.  \nReturn value %d\nErrno %d\n", strerror(errno), message_queue_id, errno);
 	}
+	
 
 }
 
