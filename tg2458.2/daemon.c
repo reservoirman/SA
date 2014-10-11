@@ -39,7 +39,8 @@ static void _messageDaemon()
 		printf("Message queue %d created! \n", message_queue_id);
 		while (1)
 		{
-			if (msgrcv(message_queue_id, (void*)buffer, BUF_SIZE, 0, 0) != -1)
+			int ret = msgrcv(message_queue_id, (void*)buffer, BUF_SIZE, 0, 0);
+			if (ret != -1)
 			{
 				printf("DAEMON: You wrote: %s\n", buffer);
 				if (strncmp(buffer, "end", sizeof("end")) == 0)
@@ -49,7 +50,7 @@ static void _messageDaemon()
 			}
 			else
 			{
-				printf("Msgrcv failed! %s.  \nReturn value %d\nErrno %d\n", strerror(errno), message_queue_id, errno);
+				printf("Msgrcv failed! %s.\nReturn value %d\nErrno %d\n", strerror(errno), ret, errno);
 				break;
 			}
 			
@@ -59,7 +60,7 @@ static void _messageDaemon()
 	{
 		printf("Message queue creation failed! %s.  \nReturn value %d\nErrno %d\n", strerror(errno), message_queue_id, errno);
 	}
-	
+
 
 }
 
