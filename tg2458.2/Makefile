@@ -1,7 +1,7 @@
 # A simple Makefile
 
 # List the object files in one place
-OBJ=aclchecking.o namechecking.o objects.o linkedlist.o
+OBJ=messaging.o aclchecking.o namechecking.o objects.o linkedlist.o
 
 # The first target is the default if you just say "make".  In this
 # case, "build" relies on "sample", because I want the executable to be

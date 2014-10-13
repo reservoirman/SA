@@ -1,12 +1,25 @@
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
+#include <unistd.h>			//for getuid
 #include <stdlib.h>
+#include <sys/types.h>		//for uid_t and gid_t
+#include <pwd.h>			//for struct passwd
+#include <grp.h>			//for struct grp
 #include "namechecking.h"
 #include "objects.h"
+#include "messaging.h"
 
 static char buffer[OBJECT_SIZE];
 
+static void objput(char *objname)
+{
+
+
+
+
+}
+
+static MessagingType _objput_message;
 
 int main (int argc, char **argv)
 {
@@ -14,29 +27,48 @@ int main (int argc, char **argv)
 	char *user_name = NULL, *group_name = NULL;
 	
 	fread(buffer, sizeof(char), OBJECT_SIZE, stdin);
-	while ((opt = getopt(argc, argv, ":u:g:")) != -1)
-	{
-		switch (opt)
-		{
-			case 'u':
-				user_name = namechecking_copyName(optarg);
-				break;
-			case 'g':
-				group_name = namechecking_copyName(optarg);
-				break;
-			case ':':
-			printf("Option needs a value\n");
-			break;
-			case '?':
-			printf("Unknown option: %c\n", optopt);
-			break;
-			default:
-			printf ("Invalid input.  Please try again.\n");
-			break;
 
+	//extract the user name
+	uid_t uid = getuid();
+	struct passwd *us = getpwuid(uid);
+
+	//extract the group
+	gid_t gid = getgid();
+	struct group *gs = getgrgid(gid);
+
+	//validate the user and group names
+	if (us != NULL && gs != NULL)
+	{
+		printf("I AM %s AND I'M PART OF THE %s CREW\n", us->pw_name, gs->gr_name);
+		if (argc == 2)
+		{
+			if (namechecking_validateInputs(us->pw_name, gs->gr_name, argv[1]) == 0)
+			{
+				//construct the message
+				_objput_message.message_type = 1004;
+				_objput_message.user = us->pw_name;
+				_objput_message.group = gs->gr_name;
+				_objput_message.object = argv[1];
+				_objput_message.content = buffer;
+				//send the message to the daemon
+				int success = messaging_sendMessage(&_objput_message);
+
+				//the daemon should then create the file with root only permissions
+			}
+		}
+		else
+		{
+			printf("OBJPUT error: please enter the object name.\n");
 		}
 	}
+	else
+	{
+		printf("OBJPUT error: failed to obtain user/group names.  Try again.\n");
+	}
 
+
+	//this should all go in the daemon:
+	
 	//if the user and group are valid, and if the names are all synctactically correct:
 	if (namechecking_validateInputs(user_name, group_name, argv[optind]) == 0)
 	{
