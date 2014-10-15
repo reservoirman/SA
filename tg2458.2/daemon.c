@@ -11,6 +11,8 @@
 static int message_queue_id = -1;
 static char buffer[BUF_SIZE];
 
+static MessagingType _buffer;
+
 static void _closeMessageQueue()
 {
 	if(message_queue_id != -1)
@@ -31,11 +33,11 @@ static void _closeMessageQueue()
 static void _messageDaemon()
 {
 	//run setsid to detach it from any particular session/terminal
-	int set = setsid();
+	int set = 0 ; //= setsid();
 	if (set != -1)
 	{
 		//create message queue
-		message_queue_id = msgget(QUEUE_ID, 0777 | IPC_CREAT);
+		message_queue_id = messaging_init();
 		signal(SIGINT, _closeMessageQueue);
 		//if we created the message queue, start the daemon loop
 		if (message_queue_id != -1)
@@ -43,10 +45,13 @@ static void _messageDaemon()
 			printf("Message queue %d created! \n", message_queue_id);
 			while (1)
 			{
-				int ret = msgrcv(message_queue_id, (void*)buffer, BUF_SIZE, 0, 0);
+				int ret = msgrcv(message_queue_id, (void*)buffer, 0xFFFFFF, 0, 0);
 				if (ret != -1)
+				//MessagingType *output = messaging_receiveMessage();
+				//if (output != NULL)
 				{
-					printf("DAEMON: You wrote: %s\n", buffer);
+					printf("DAEMON: %s\n", buffer);
+
 					if (strncmp(buffer, "end", sizeof("end")) == 0)
 					{
 						_closeMessageQueue();
@@ -54,8 +59,8 @@ static void _messageDaemon()
 				}
 				else
 				{
-					printf("Msgrcv failed! %s.\nReturn value %d\nErrno %d\n", strerror(errno), ret, errno);
-					break;
+					printf("Msgrcv failed! \n");//Return value %d\nErrno %d\n", strerror(errno), ret, errno);
+					//break;
 				}
 				
 			}		
