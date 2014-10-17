@@ -8,6 +8,7 @@
 #include "namechecking.h"
 #include "objects.h"
 #include "messaging.h"
+#include <sys/msg.h>
 
 static char buffer[OBJECT_SIZE];
 
@@ -42,17 +43,31 @@ int main (int argc, char **argv)
 		printf("I AM %s AND I'M PART OF THE %s CREW\n", us->pw_name, gs->gr_name);
 		if (argc == 2)
 		{
-			if (namechecking_validateInputs(us->pw_name, gs->gr_name, argv[1]) == 0)
+			//if (namechecking_validateInputs(us->pw_name, gs->gr_name, argv[1]) == 0)
 			{
 				//construct the message
+				/*
 				_objput_message.message_type = 1004;
-				_objput_message.user = us->pw_name;
+				strncpy() _objput_message.user = us->pw_name;
 				_objput_message.group = gs->gr_name;
 				_objput_message.object = argv[1];
 				_objput_message.content = buffer;
+				*/
 				//send the message to the daemon
-				int success = messaging_sendMessage(&_objput_message);
+				//MessagingType test = {1004, "root", "root", "doc", "hello what up"};
+				printf("What's up\n");
+				int success = messaging_sendMessage(OBJPUT, us->pw_name, gs->gr_name, argv[1]);
+				if (success == 0)
+				{
+					printf("OBJPUT: message sent!!\n");
+					//if successful, send the content
+					//divide the file into chunks of 0x1A74 bytes long and send them and rebuild the file
+				}
+				else
+				{
+					printf("OBJPUT error: message was not sent to daemon\n");
 
+				}
 				//the daemon should then create the file with root only permissions
 			}
 		}
@@ -70,7 +85,8 @@ int main (int argc, char **argv)
 	//this should all go in the daemon:
 	
 	//if the user and group are valid, and if the names are all synctactically correct:
-	if (namechecking_validateInputs(user_name, group_name, argv[optind]) == 0)
+	//if (namechecking_validateInputs(user_name, group_name, argv[optind]) == 0)
+	/*
 	{
 		int success = -1;
 		//check if this object already exists		
@@ -115,7 +131,7 @@ int main (int argc, char **argv)
 	}
 
 	free(user_name);
-	free(group_name);
+	free(group_name);*/
 	return 0;
 }
 

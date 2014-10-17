@@ -33,9 +33,11 @@ static void _closeMessageQueue()
 static void _messageDaemon()
 {
 	//run setsid to detach it from any particular session/terminal
-	int set = 0 ; //= setsid();
+	int set = setsid();
 	if (set != -1)
 	{
+		umask(077);		//any files that the daemon creates, only the owner (root) can access them.
+
 		//create message queue
 		message_queue_id = messaging_init();
 		signal(SIGINT, _closeMessageQueue);
@@ -50,11 +52,34 @@ static void _messageDaemon()
 				//MessagingType *output = messaging_receiveMessage();
 				//if (output != NULL)
 				{
-					printf("DAEMON: %s\n", buffer);
-
-					if (strncmp(buffer, "end", sizeof("end")) == 0)
+					MessagingType *response = (MessagingType *)buffer;
+					switch (response->message_type)
 					{
-						_closeMessageQueue();
+						case OBJPUT:
+							printf("ANGEL dump OBJPUT: %s\n", response->content);
+							break;
+						case OBJGET:
+							printf("ANGEL dump OBJGET: %s\n", response->content);
+							break;
+						case OBJLIST:
+							printf("ANGEL dump OBJLIST: %s\n", response->content);
+							break;
+						case OBJGETACL:
+							printf("ANGEL dump OBJGETACL: %s\n", response->content);
+							break;
+						case OBJSETACL:
+							printf("ANGEL dump OBJSETACL: %s\n", response->content);
+							break;
+						case OBJTESTACL:
+							printf("ANGEL dump OBJTESTACL: %s\n", response->content);
+							break;
+						default:	
+							printf("ANGEL dump string: %s\n", buffer);
+							if (strncmp(buffer, "end", sizeof("end")) == 0)
+							{
+								_closeMessageQueue();
+							}
+							break;
 					}
 				}
 				else
