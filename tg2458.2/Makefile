@@ -3,10 +3,18 @@
 # List the object files in one place
 OBJ=messaging.o aclchecking.o namechecking.o objects.o linkedlist.o
 
+PRG=objlist objget objput objsetacl objtestacl objgetacl
+
 # The first target is the default if you just say "make".  In this
 # case, "build" relies on "sample", because I want the executable to be
 # called "sample"
-all: clean messaging aclchecking namechecking objects linkedlist objtestacl objgetacl objsetacl objput objget objlist initializer
+all: clean messaging aclchecking namechecking objects linkedlist objectprograms angel objtestacl objgetacl objsetacl objput objget objlist initializer 
+
+angel:
+	gcc -o angel.out objectprograms.o messaging.o angel.c
+
+objectprograms:
+	gcc -c objectprograms.c
 
 messaging:
 	gcc -c messaging.c

@@ -3,7 +3,7 @@
 #include <string.h>		//for strlen
 #include <errno.h>
 
-#define MESSAGE_QUEUE_ID 	1004
+#define MESSAGE_QUEUE_ID 	10
 
 typedef struct {
 	long int message_type;
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 
 	if (argc == 2)
 	{
-		int msgid = msgget(MESSAGE_QUEUE_ID, 0722 | IPC_CREAT);
+		int msgid = msgget(MESSAGE_QUEUE_ID, 0777 | IPC_CREAT);
 
 		if (msgid != -1)
 		{
@@ -32,6 +32,10 @@ int main(int argc, char **argv)
 			{
 				printf("SENDER: message sent!\n");
 			}	
+		}
+		else
+		{
+			printf("SENDER: message queue does not exist.  Please run angel first\n");
 		}
 		
 	}

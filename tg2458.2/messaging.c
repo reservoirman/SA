@@ -5,66 +5,81 @@
 #include <errno.h>
 #include "messaging.h"
 
-#define MESSAGE_QUEUE_ID 	1004
+#define MESSAGE_QUEUE_ID 	10
+#define MESSAGE_ACK_ID		 4
 
 #define SIZE(x)	strlen(x)
 
-static int _msgid;
+static int _msgid, _msgid2;
 static char *_message;
 static char *position;
 static int message_length = 100;
-static MessagingType _theMessage;
+static MessagingType 		_theRequest;
+static MessagingFinishType	_theFinish;
+
+
 
 int messaging_init()
 {
-	_msgid = msgget(MESSAGE_QUEUE_ID, 0777 | IPC_CREAT);
-	memset(&_theMessage, 0, sizeof(_theMessage));
-	printf("MESSAGE SIZE = %lu!\n", sizeof(_theMessage));
-	return _msgid;
+	int success = -1;
+
+	if ((_msgid = msgget(MESSAGE_QUEUE_ID, 0777 | IPC_CREAT )) != -1 && 
+		(_msgid2 = msgget(MESSAGE_ACK_ID, 0777 | IPC_CREAT )) != -1)
+	{
+		success = 0;
+		memset(&_theRequest, 0, sizeof(_theRequest));
+		memset(&_theFinish, 0, sizeof(_theFinish));
+	}
+	return success;
 }
 
-static int _increment_position(int offset)
+int messaging_isAlive()
 {
-		position += offset;
-		*position = '-';
-		position++;
+	return (_msgid != -1 && _msgid2 != -1);
 }
 
-int messaging_sendMessage(MessageType type, char *u, char *g, char *o)
+int messaging_sendRequest(MessageType type, char *u, char *g, char *o)
 {
 	int success = -1;
 
-	_msgid = msgget(MESSAGE_QUEUE_ID, 0722 | IPC_CREAT);
-
-	if (_msgid != -1)
+	if (messaging_init() != -1)
 	{
-		/*
-		memset(&_theMessage, 0, sizeof(_theMessage));
-		message_length = 0;
-		message_length += SIZE(u);
-		message_length += SIZE(g);
-		message_length += SIZE(o);
-		message_length += SIZE(c) + 4;	//for the 4 hyphens used as delimiters
-		_theMessage.message_type = 1004;
-		_message = (char *)malloc (message_length);
-		position = _message; 
-		//position = _theMessage.message;
-		strncpy(position, u, SIZE(u));
-		_increment_position(SIZE(u));
-		strncpy(position, g, SIZE(g));
-		_increment_position(SIZE(g));
-		strncpy(position, o, SIZE(o));
-		_increment_position(SIZE(o));
-		strncpy(position, c, SIZE(c));
-		*/
-		strncpy(_theMessage.user, u, SIZE(u));
-		strncpy(_theMessage.group, g, SIZE(g));
-		strncpy(_theMessage.object, o, SIZE(o));
-		_theMessage.message_type = type;
-		//_theMessage.message = _message;
-		printf("MSGSND dump: %s\n", _theMessage.content);
+		strncpy(_theRequest.request.user, u, SIZE(u));
+		strncpy(_theRequest.request.group, g, SIZE(g));
+		strncpy(_theRequest.request.object, o, SIZE(o));
+		_theRequest.message_type = type;
 
-		if (msgsnd(_msgid, (void *)&_theMessage, sizeof(_theMessage), 0) != -1)
+		printf("MSGSND dump: %s\n", _theRequest.data.content);
+
+		success = msgsnd(_msgid, (void *)&_theRequest, sizeof(MessagingType), 0);
+
+		if (success == -1)
+		{
+			printf("MSGID = %u\n", _msgid);
+			printf("messaging_sendRequest failed! %s.\nErrno %d\n", strerror(errno), errno);
+		}
+	}
+	else
+	{
+		printf("MESSAGING error: failed to get message queue.\n");
+	}
+
+	return success;
+}
+
+int messaging_sendContent(char *c, int eof)
+{
+	int success = -1;
+
+	if (messaging_init() != -1)
+	{
+		strncpy(_theRequest.data.content, c, SIZE(c));
+		_theRequest.data.eof = eof;
+		_theRequest.message_type = CONTENT;
+
+		printf("MSGSND dump: %s\n", _theRequest.data.content);
+
+		if (msgsnd(_msgid2, (void *)&_theRequest, sizeof(_theRequest), IPC_NOWAIT) != -1)
 		{
 			success = 0;
 		}	
@@ -81,30 +96,75 @@ int messaging_sendMessage(MessageType type, char *u, char *g, char *o)
 	return success;
 }
 
-MessagingType * messaging_receiveMessage()
+int messaging_sendFinished(int return_code)
 {
-	MessagingType *output;
+	int success = -1;
 
-	memset(&_theMessage, 0, sizeof(_theMessage));
-
-	_msgid = msgget(MESSAGE_QUEUE_ID, 0722 | IPC_CREAT);
-
-	int ret = msgrcv(_msgid, (void*)&_theMessage, sizeof(_theMessage), 0, 0);
-	if (ret == -1)
+	if (messaging_init() != -1)
 	{
-		output = NULL;
+		_theFinish.return_code = return_code;
+		_theFinish.message_type = FINISHED;
+
+		printf("messaging_sendFinished dump: %d\n", _theFinish.return_code);
+
+		if (msgsnd(_msgid2, (void *)&_theFinish, sizeof(_theFinish), IPC_NOWAIT) != -1)
+		{
+			success = 0;
+		}	
+		else
+		{
+			printf("messaging_sendFinished failed! %s.\nErrno %d\n", strerror(errno), errno);
+		}
 	}
 	else
 	{
-		output = &_theMessage;
+		printf("MESSAGING error: failed to get message queue.\n");
 	}
-	printf("Msgrcv failed! %s.\nErrno %d\nMessage Length = %d\n", strerror(errno), errno, message_length / 2);
+
+	return success;
+}
+
+
+MessagingType * messaging_receiveRequest()
+{
+	MessagingType *output = NULL;
+
+	if (messaging_init() != -1)
+	{
+		int ret = msgrcv(_msgid, (void*)&_theRequest, sizeof(_theRequest), 0, 0);
+		if (ret != -1)
+		{
+			output = &_theRequest;
+		}
+	}
 	return output;
 }
 
-void messaging_close()
+MessagingFinishType * messaging_receiveFinished()
 {
+	MessagingFinishType *finish;
 
-				
+	if (messaging_init() != -1)
+	{
+		int ret = msgrcv(_msgid2, (void*)&_theFinish, sizeof(_theFinish), 0, 0);
+		if (ret == -1)
+		{
+			finish = NULL;
+			printf("messaging_receiveFinished failed! %s.\nErrno %d\nMessage Length = %d\n", strerror(errno), errno, message_length);
+		}
+		else
+		{
+			finish = &_theFinish;
+		}
+	}
 
+	return finish;
+}
+
+
+
+
+int messaging_close()
+{
+	return (msgctl(_msgid, IPC_RMID, NULL) | msgctl(_msgid2, IPC_RMID, NULL));
 }

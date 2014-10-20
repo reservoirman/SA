@@ -5,28 +5,91 @@
 #include <errno.h>		//for errno
 #include <stdlib.h>		//for EXIT_SUCCESS
 #include "messaging.h"
+#include "objectprograms.h"
 
-#define QUEUE_ID 1004
+//for indexing into the table of function pointers
+typedef enum {
+				NO_INDEX = 0,
+				OBJPUT_INDEX, 
+				OBJGET_INDEX,  
+				OBJLIST_INDEX, 
+				OBJGETACL_INDEX, 
+				OBJSETACL_INDEX, 
+				OBJTESTACL_INDEX
+			} MessageTypeIndex;		
+
+static ObjectProgramRunner _jump_table[OBJTESTACL_INDEX + 1];
+
+#define QUEUE_ID 10
 #define BUF_SIZE 100
-static int message_queue_id = -1;
-static char buffer[BUF_SIZE];
+#define FILE_SIZE 0xFFFFFF
 
+static MessageTypeIndex _current_index = NO_INDEX;
 static MessagingType _buffer;
+static char _file[FILE_SIZE] = {0};
+//to mark where we at filling in _file
+static int _marker;
+
+int no_index_runner(char *a, char *b, char *c, char *d)
+{
+	printf("no_index_runner called!!!\n");
+	return 0;
+}
+
+static void _setupJumpTable()
+{
+	_current_index = NO_INDEX;
+	_jump_table[NO_INDEX] 			= no_index_runner;
+	_jump_table[OBJPUT_INDEX] 		= objects_objput;
+	_jump_table[OBJGET_INDEX] 		= objects_objget;
+	_jump_table[OBJLIST_INDEX] 		= objects_objlist;
+	_jump_table[OBJGETACL_INDEX] 	= objects_objgetacl;
+	_jump_table[OBJSETACL_INDEX] 	= objects_objsetacl;
+	_jump_table[OBJTESTACL_INDEX] 	= objects_objtestacl;
+}
 
 static void _closeMessageQueue()
 {
-	if(message_queue_id != -1)
+	if (messaging_close() == 0)
 	{
-		if (msgctl(message_queue_id, IPC_RMID, NULL) == 0)
-		{
-			printf("closed the message queue!  Daemon exiting.\n");
-		}
-		else
-		{
-			printf("Message queue failed to close! Daemon exiting\n");
-		}
+		printf("closed the message queue!  Angel exiting.\n");
+		_jump_table[_current_index](NULL, NULL, NULL, NULL);
 	}
+	else
+	{
+		printf("Message queue failed to close! Angel exiting\n");
+	}
+
 	exit(EXIT_SUCCESS);
+}
+
+static void _callObjectProgram(MessagingType *out, MessageTypeIndex index)
+{
+	struct Request *r = &out->request;
+
+	//passing in the user, group, object, and content and call object program
+	int result = _jump_table[index](r->user, r->group, r->object, _file);
+	
+	//obtain the result of that program and send back to the program
+	messaging_sendFinished(result);
+}
+
+static void _buildingUpContent(MessagingType *out)
+{
+	//accumulate more data
+	memcpy(_file + _marker, out->data.content, strlen(out->data.content));
+		
+	//if this is the eof, 
+	if (out->data.eof)
+	{
+		//reset file marker back to 0
+		_marker = 0;
+	}
+	//if this is not eof, keep accumulating data
+	else
+	{
+		_marker += strlen(out->data.content);
+	}
 }
 
 //the one that runs as root
@@ -37,62 +100,59 @@ static void _messageDaemon()
 	if (set != -1)
 	{
 		umask(077);		//any files that the daemon creates, only the owner (root) can access them.
-
-		//create message queue
-		message_queue_id = messaging_init();
-		signal(SIGINT, _closeMessageQueue);
-		//if we created the message queue, start the daemon loop
-		if (message_queue_id != -1)
+		
+		//if we created the message queues successfully, start the daemon loop
+		if (messaging_init() != -1)
 		{
-			printf("Message queue %d created! \n", message_queue_id);
-			while (1)
+			printf("Message queues created! \n");
+			//also, setup the jump table
+			_setupJumpTable();
+			_marker = 0;
+			//we loop as long as the message queues are available
+			while (messaging_isAlive())
 			{
-				int ret = msgrcv(message_queue_id, (void*)buffer, 0xFFFFFF, 0, 0);
-				if (ret != -1)
-				//MessagingType *output = messaging_receiveMessage();
-				//if (output != NULL)
+				MessagingType *output = messaging_receiveRequest();
+				if (output != NULL)
 				{
-					MessagingType *response = (MessagingType *)buffer;
-					switch (response->message_type)
+					
+					switch (output->message_type)
 					{
-						case OBJPUT:
-							printf("ANGEL dump OBJPUT: %s\n", response->content);
+						case OBJPUT:							
+							_callObjectProgram(output, OBJPUT_INDEX);
 							break;
 						case OBJGET:
-							printf("ANGEL dump OBJGET: %s\n", response->content);
+							_callObjectProgram(output, OBJGET_INDEX);
 							break;
 						case OBJLIST:
-							printf("ANGEL dump OBJLIST: %s\n", response->content);
+							_callObjectProgram(output, OBJLIST_INDEX);
 							break;
 						case OBJGETACL:
-							printf("ANGEL dump OBJGETACL: %s\n", response->content);
+							_callObjectProgram(output, OBJGETACL_INDEX);
 							break;
 						case OBJSETACL:
-							printf("ANGEL dump OBJSETACL: %s\n", response->content);
+							_callObjectProgram(output, OBJSETACL_INDEX);
 							break;
 						case OBJTESTACL:
-							printf("ANGEL dump OBJTESTACL: %s\n", response->content);
+							_callObjectProgram(output, OBJTESTACL_INDEX);
+							break;
+						case CONTENT:
+							_buildingUpContent(output);
 							break;
 						default:	
-							printf("ANGEL dump string: %s\n", buffer);
-							if (strncmp(buffer, "end", sizeof("end")) == 0)
+							printf("ANGEL dump string: %s\n", (char *)output);
+							if (strncmp((char *)output, "end", sizeof("end")) == 0)
 							{
 								_closeMessageQueue();
 							}
 							break;
 					}
 				}
-				else
-				{
-					printf("Msgrcv failed! \n");//Return value %d\nErrno %d\n", strerror(errno), ret, errno);
-					//break;
-				}
-				
 			}		
 		}
 		else 
 		{
-			printf("Message queue creation failed! %s.  \nReturn value %d\nErrno %d\n", strerror(errno), message_queue_id, errno);
+			printf("Angel creation failed! Please delete message queues and try again\n");
+			exit(EXIT_SUCCESS);
 		}		
 	}
 

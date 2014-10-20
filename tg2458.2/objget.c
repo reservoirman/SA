@@ -65,5 +65,5 @@ int main (int argc, char **argv)
 	free(group_name);
 
 
-
+	return 0;
 }
