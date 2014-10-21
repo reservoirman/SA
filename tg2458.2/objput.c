@@ -11,6 +11,7 @@
 #include <sys/msg.h>
 
 static char buffer[OBJECT_SIZE];
+static char chunk[CHUNK_LENGTH];
 
 static void objput(char *objname)
 {
@@ -78,11 +79,11 @@ int objects_objput(char *a, char *b, char *c, char *d)
 
 int main (int argc, char **argv)
 {
-	int opt, success = 0;
+	int opt, success = 1, result = -1;
 	char *user_name = NULL, *group_name = NULL;
 	
 	fread(buffer, sizeof(char), OBJECT_SIZE, stdin);
-
+	
 	//extract the user name
 	uid_t uid = getuid();
 	struct passwd *us = getpwuid(uid);
@@ -97,32 +98,57 @@ int main (int argc, char **argv)
 		printf("I AM %s AND I'M PART OF THE %s CREW\n", us->pw_name, gs->gr_name);
 		if (argc == 2)
 		{
-			//if (namechecking_validateInputs(us->pw_name, gs->gr_name, argv[1]) == 0)
+			if (namechecking_validateInputs(us->pw_name, gs->gr_name, argv[1]) == 0)
 			{
-				//construct the message and send the message to the daemon
-				int success = messaging_sendRequest(OBJPUT, us->pw_name, gs->gr_name, argv[1]);
-				if (success == 0)
+				//divide the full up into 0x2F9-byte long chunks to send to the angel
+				int i, reps = strlen(buffer) / CHUNK_LENGTH;
+				char *current = buffer;
+				for (i = 0; i < reps; i++)
 				{
-					//if successful, send the content
-					//divide the file into chunks of 0x1A74 bytes long and send them and rebuild the file
-					MessagingFinishType *holla = messaging_receiveFinished();
-					if (holla != NULL)
+					strncpy(chunk, current, CHUNK_LENGTH);
+					result = messaging_sendContent(chunk, 0);
+					if (result == 0)
 					{
-						success = holla->return_code;	
-						printf("Finito!!!! Return code = %d\n", success);
+						current += CHUNK_LENGTH;
 					}
 					else
 					{
-						printf("What the, why was finish structure null???\n");
+						break;
 					}
-					
-					
-				}
-				else
-				{
-					printf("OBJPUT error: message was not sent to daemon\n");
 
 				}
+				//this is the last chunk to send, so set eof to 1
+				strncpy(chunk, current, CHUNK_LENGTH);
+				result = messaging_sendContent(chunk, 1);
+				printf("The last chunk: %s\n\n\n\n!!!\n\n\n\n", chunk);
+				if (result == 0)
+				{
+					//now to construct the request message to send to the angel
+					result = messaging_sendRequest(OBJPUT, us->pw_name, gs->gr_name, argv[1]);
+					if (result == 0)
+					{
+						//if successful, send the content
+						//divide the file into chunks of 0x1A74 bytes long and send them and rebuild the file
+						MessagingFinishType *holla = messaging_receiveFinished();
+						if (holla != NULL)
+						{
+							success = holla->return_code;	
+							printf("Finito!!!! Return code = %d\n", success);
+						}
+						else
+						{
+							printf("What the, why was finish structure null???\n");
+						}
+						
+						
+					}
+					else
+					{
+						printf("OBJPUT error: message was not sent to daemon\n");
+						
+					}
+				}
+				
 				//the daemon should then create the file with root only permissions
 			}
 		}

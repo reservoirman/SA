@@ -67,9 +67,12 @@ int objects_objput(char *a, char *b, char *c, char *d)
 
 	free(user_name);
 	free(group_name);*/
+	printf("objects_objget called!!!\n");
+
+	return 1004;
 }
 
-int objects_objget(char *a, char *b, char *c, char *d)
+int objects_objget(char *user, char *group, char *object, char *content)
 {
 
 }

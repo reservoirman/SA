@@ -77,9 +77,9 @@ int messaging_sendContent(char *c, int eof)
 		_theRequest.data.eof = eof;
 		_theRequest.message_type = CONTENT;
 
-		printf("MSGSND dump: %s\n", _theRequest.data.content);
+		//printf("MSGSND dump: %s\n", _theRequest.data.content);
 
-		if (msgsnd(_msgid2, (void *)&_theRequest, sizeof(_theRequest), IPC_NOWAIT) != -1)
+		if (msgsnd(_msgid, (void *)&_theRequest, sizeof(_theRequest), 0) != -1)
 		{
 			success = 0;
 		}	
@@ -142,14 +142,13 @@ MessagingType * messaging_receiveRequest()
 
 MessagingFinishType * messaging_receiveFinished()
 {
-	MessagingFinishType *finish;
+	MessagingFinishType *finish = NULL;
 
 	if (messaging_init() != -1)
 	{
 		int ret = msgrcv(_msgid2, (void*)&_theFinish, sizeof(_theFinish), 0, 0);
 		if (ret == -1)
 		{
-			finish = NULL;
 			printf("messaging_receiveFinished failed! %s.\nErrno %d\nMessage Length = %d\n", strerror(errno), errno, message_length);
 		}
 		else

@@ -13,7 +13,7 @@ typedef enum {
 				FINISHED
 			} MessageType;
 
-
+#define CHUNK_LENGTH 0x2F9
 
 struct Request {
 	char user[0xFF];
@@ -22,7 +22,7 @@ struct Request {
 };
 
 struct Data {
-	char content[0x2F9];
+	char content[CHUNK_LENGTH];
 	int eof;
 };
 

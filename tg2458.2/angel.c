@@ -28,7 +28,7 @@ static MessageTypeIndex _current_index = NO_INDEX;
 static MessagingType _buffer;
 static char _file[FILE_SIZE] = {0};
 //to mark where we at filling in _file
-static int _marker;
+static char *_marker;
 
 int no_index_runner(char *a, char *b, char *c, char *d)
 {
@@ -66,7 +66,8 @@ static void _closeMessageQueue()
 static void _callObjectProgram(MessagingType *out, MessageTypeIndex index)
 {
 	struct Request *r = &out->request;
-
+	//reset file marker once we are calling on object program
+	_marker = _file;
 	//passing in the user, group, object, and content and call object program
 	int result = _jump_table[index](r->user, r->group, r->object, _file);
 	
@@ -76,18 +77,19 @@ static void _callObjectProgram(MessagingType *out, MessageTypeIndex index)
 
 static void _buildingUpContent(MessagingType *out)
 {
-	//accumulate more data
-	memcpy(_file + _marker, out->data.content, strlen(out->data.content));
+	memcpy(_marker, out->data.content, strlen(out->data.content));
 		
 	//if this is the eof, 
-	if (out->data.eof)
+	if (out->data.eof == 1)
 	{
-		//reset file marker back to 0
-		_marker = 0;
+		//reset file marker back to beginning of buffer
+		_marker = _file;
+		printf("THE CONTENT!!!! %s\n!!!!!!!!\n\n\n\n", _file);
 	}
 	//if this is not eof, keep accumulating data
 	else
 	{
+		//accumulate more data
 		_marker += strlen(out->data.content);
 	}
 }
@@ -107,14 +109,15 @@ static void _messageDaemon()
 			printf("Message queues created! \n");
 			//also, setup the jump table
 			_setupJumpTable();
-			_marker = 0;
+			//setup file buffer
+			_marker = _file;
+			memset(_file, 0, strlen(_file));
 			//we loop as long as the message queues are available
 			while (messaging_isAlive())
 			{
 				MessagingType *output = messaging_receiveRequest();
 				if (output != NULL)
 				{
-					
 					switch (output->message_type)
 					{
 						case OBJPUT:							
