@@ -8,9 +8,11 @@
 
 #define OBJECT_REGEX    "[a-Z0-9_]+"
 #define FILE_REGEX		"[a-Z0-9_]+.txt"
+#define ACL_REGEX		"([a-Z0-9_]+|\\*).([a-Z0-9_]+|\\*)[[:blank:]]+[rwxpv]{1,5}"
 
 #define OBJECT_ERROR "%s is not a valid object name.  \nCan only contain letters, digits, and underscores.\n"
 #define FILE_ERROR "%s is not a valid file name.  \nCan only contain letters, digits, and underscores, and must end in '.txt'\n"
+#define ACL_ERROR "%s is not a valid ACL string.  \nCan only contain a valid object name or '*', followed by '.', followed by a valid object name or '*', followed by a space and any subset of r,w,x,p,v.\n"
 
 static regex_t re;
 regmatch_t match[2];
@@ -20,15 +22,20 @@ int namechecking_check(char *name, NAME_TYPE which)
 	int success = -1;
 	char *regex;
 	const char *error_message;
-	if (which == FILES)
+	switch (which)
 	{
-		regex = FILE_REGEX;
-		error_message = FILE_ERROR;
-	} 
-	else 
-	{
-		regex = OBJECT_REGEX;
-		error_message = OBJECT_ERROR;
+		case FILES:
+			regex = FILE_REGEX;
+			error_message = FILE_ERROR;
+			break;
+		case OBJECTS:
+			regex = OBJECT_REGEX;
+			error_message = OBJECT_ERROR;
+			break;
+		case ACLS:
+			regex = ACL_REGEX;
+			error_message = ACL_ERROR;
+			break;
 	}
 	if (regcomp(&re, regex, REG_EXTENDED | REG_ICASE) != 0)
 	{

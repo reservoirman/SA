@@ -7,7 +7,7 @@
 static char _currentACL[MAXNAMELENGTH + 20];
 
 //checks if the desired action is permissible given the particular access control list
-int aclchecking_isValid(char *user_name, char *group_name, char *acl, char *op, char *action, int surpress)
+int aclchecking_isValidOp(char *user_name, char *group_name, char *acl, char *op, char *action, int surpress)
 {
 	int success = -1;
 	//break it up into three tokens- user, group(s), and ops

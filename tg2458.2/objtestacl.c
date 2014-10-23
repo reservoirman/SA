@@ -73,7 +73,7 @@ int main (int argc, char **argv)
 			{
 				sprintf(output, "denied\n");
 				//call this to extract the ACL block
-				aclchecking_isValid(user_name, group_name, acl, "p\0", (char *)"change this object's ACL", 1);
+				aclchecking_isValidOp(user_name, group_name, acl, "p\0", (char *)"change this object's ACL", 1);
 
 				//get the ACL block
 				acl = aclchecking_getACL();
