@@ -53,7 +53,7 @@ int main (int argc, char **argv)
 		{
 			//if so, check the acl to see if this user is 
 			//allowed to write to the acl
-			if (aclchecking_isValidOp(user_name, group_name, acl, "p\0", (char *)"change this object's ACL", 0) == 0)
+			if (aclchecking_isValidOp(user_name, group_name, acl, "p\0") == 0)
 			{
 				objects_createObject(user_name, argv[optind], buffer, ACL);
 			}

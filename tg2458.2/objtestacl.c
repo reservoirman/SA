@@ -73,16 +73,21 @@ int main (int argc, char **argv)
 			{
 				sprintf(output, "denied\n");
 				//call this to extract the ACL block
-				aclchecking_isValidOp(user_name, group_name, acl, "p\0", (char *)"change this object's ACL", 1);
-
-				//get the ACL block
-				acl = aclchecking_getACL();
-				//check if it allows permissions
-				if (strstr(acl, op_name))
+				if (aclchecking_isValidOp(user_name, group_name, acl, "p\0") == -1)
 				{
-					sprintf(output, "allowed\n");
-				}	
-				printf("%s", output);
+					aclchecking_printErrno(user_name, group_name, "p\0");
+				}
+				else
+				{
+					//get the ACL block
+					acl = aclchecking_getACL();
+					//check if it allows permissions
+					if (strstr(acl, op_name))
+					{
+						sprintf(output, "allowed\n");
+					}	
+					printf("%s", output);
+				}
 			}
 			else
 			{

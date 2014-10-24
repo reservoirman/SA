@@ -8,7 +8,7 @@
 
 #define OBJECT_REGEX    "[a-Z0-9_]+"
 #define FILE_REGEX		"[a-Z0-9_]+.txt"
-#define ACL_REGEX		"([a-Z0-9_]+|\\*).([a-Z0-9_]+|\\*)[[:blank:]]+[rwxpv]{1,5}"
+#define ACL_REGEX		"[[:space:]]*(([a-Z0-9_]+|\\*).([a-Z0-9_]+|\\*)[[:blank:]]+[rwxpv]{1,5}[[:space:]]*)+"
 
 #define OBJECT_ERROR "%s is not a valid object name.  \nCan only contain letters, digits, and underscores.\n"
 #define FILE_ERROR "%s is not a valid file name.  \nCan only contain letters, digits, and underscores, and must end in '.txt'\n"
@@ -37,7 +37,7 @@ int namechecking_check(char *name, NAME_TYPE which)
 			error_message = ACL_ERROR;
 			break;
 	}
-	if (regcomp(&re, regex, REG_EXTENDED | REG_ICASE) != 0)
+	if (regcomp(&re, regex, REG_EXTENDED | REG_ICASE | REG_NEWLINE) != 0)
 	{
 	    fprintf(stderr, "Failed to compile regex '%s'\n", regex);
 	}
@@ -69,6 +69,15 @@ char * namechecking_copyName(char *name)
 	return user_name;
 }
 
+
+int namechecking_validateACL(char *acl)
+{
+	int success = -1;
+	char buffer[1024];
+
+
+
+}
 
 int namechecking_validateInputs(char *user_name, char *group_name, char *object_name)
 {

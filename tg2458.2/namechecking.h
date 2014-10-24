@@ -7,6 +7,7 @@ typedef enum { FILES, OBJECTS, ACLS} NAME_TYPE;
 
 //function prototype 
 int namechecking_check(char *name, NAME_TYPE which);
+int namechecking_validateACL(char *acl);
 char *namechecking_copyName(char *name);
 int namechecking_validateInputs(char *user, char *group, char *object);
 

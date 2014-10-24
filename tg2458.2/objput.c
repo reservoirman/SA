@@ -39,7 +39,7 @@ int objects_objput(char *a, char *b, char *c, char *d)
 
 			//if so, check the acl to see if this user is 
 			//allowed to write to the file
-			if (aclchecking_isValid(user_name, group_name, acl, "w\0", (char *)"write to the object", 0) == 0)
+			if (aclchecking_isValidOp(user_name, group_name, acl, "w\0") == 0)
 			{
 				success = 0;
 			}

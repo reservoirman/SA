@@ -46,11 +46,13 @@ int main (int argc, char **argv)
 		//check if this object exists		
 		char *acl = objects_readObject(user_name, argv[optind], ACL);
 		//check if the ACL for this object is good
+		namechecking_validateACL(acl);
+
 		if (acl != NULL && namechecking_check(acl, ACLS) == 0)
 		{
 			//if so, check the acl to see if this user is 
 			//allowed to read out the acl
-			if (aclchecking_isValidOp(user_name, group_name, acl, "v\0", (char *)"view this object's ACL", 0) == 0)
+			if (aclchecking_isValidOp(user_name, group_name, acl, "v\0") == 0)
 			{
 				//read out the ACL and print it to the console
 				char *theACL = objects_readObject(user_name, argv[optind], ACL);
@@ -58,7 +60,10 @@ int main (int argc, char **argv)
 				{
 					printf("%s\n", aclchecking_getACL());	
 				}
-				
+			}
+			else
+			{
+				aclchecking_printErrno(user_name, group_name, "v\0");
 			}
 		}
 		else

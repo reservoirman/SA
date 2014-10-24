@@ -47,7 +47,7 @@ int main (int argc, char **argv)
 		{
 			//if so, check the acl to see if this user is 
 			//allowed to read from the file
-			if (aclchecking_isValidOp(user_name, group_name, acl, "r\0", (char *)"read from the object", 0) == 0)
+			if (aclchecking_isValidOp(user_name, group_name, acl, "r\0") == 0)
 			{
 				//if we do have permission, let's go ahead and read the file
 				char *contents = objects_readObject(user_name, argv[optind], DATA);
