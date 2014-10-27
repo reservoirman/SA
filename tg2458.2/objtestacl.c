@@ -6,33 +6,6 @@
 #include "aclchecking.h"
 #include "namechecking.h"
 
-static char buffer[OBJECT_SIZE];
-static char output[8];
-static char *r = "r", *w = "w", *x = "x", *p = "p", *v = "v";
-
-int _validateOpName(char *op_name)
-{
-	int success = -1;
-	if (op_name == NULL)
-	{
-		printf("Please enter an operation to check on, e.g. '-a r' to check read permissions.\n");
-	}
-	else if ((strcmp(op_name, r) == 0) ||
-		(strcmp(op_name, w) == 0) ||
-		(strcmp(op_name, x) == 0) ||
-		(strcmp(op_name, p) == 0) ||
-		(strcmp(op_name, v) == 0))
-	{
-		success = 0;
-	}
-	else
-	{
-		printf("'%s' is not a valid operation.  Please enter 'r', 'w', 'x', 'p', or 'v'.\n", op_name);
-	}
-
-	return success;
-}
-
 int main (int argc, char **argv)
 {
 	int opt, success = 0;
@@ -65,7 +38,7 @@ int main (int argc, char **argv)
 	if (namechecking_validateInputs(user_name, group_name, argv[optind]) == 0)
 	{
 		//if the op code is valid:
-		if (_validateOpName(op_name) == 0)
+		if (namechecking_check(op_name, OPS) == 0)
 		{
 			//check if this object exists		
 			char *acl = objects_readObject(user_name, argv[optind], ACL);
@@ -73,23 +46,14 @@ int main (int argc, char **argv)
 			//doublecheck that the content is good:
 			if (acl != NULL && namechecking_check(acl, ACLS) == 0)
 			{
-				sprintf(output, "denied\n");
 				//call this to extract the ACL block
-				if (aclchecking_isValidOp(user_name, group_name, acl, "p\0") == -1)
+				if (aclchecking_isValidOp(user_name, group_name, acl, op_name) == -1)
 				{
-					aclchecking_printErrno(user_name, group_name, "p\0");
+					printf("denied\n");
 				}
 				else
 				{
-					//get the ACL block
-					acl = aclchecking_getACL();
-
-					//check if it allows permissions
-					if (strstr(acl, op_name))
-					{
-						sprintf(output, "allowed\n");
-					}	
-					printf("%s", output);
+					printf("allowed\n");
 				}
 			}
 			else

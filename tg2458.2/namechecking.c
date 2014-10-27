@@ -10,11 +10,13 @@
 #define OBJECT_REGEX    "[a-Z0-9_]+|([a-Z0-9_]+\\+[a-Z0-9_]+)"
 #define FILE_REGEX		"[a-Z0-9_]+.txt"
 #define ACL_REGEX		"[[:space:]]*(([a-Z0-9_]+|\\*).([a-Z0-9_]+|\\*)[[:blank:]]+[rwxpv]{1,5}[[:space:]]*)+"
+#define OP_REGEX		"[rwxpv]";
 
 #define USER_ERROR "ERROR: %s is not a valid user name.  \nCan only contain letters, digits, and underscores.\n"
 #define OBJECT_ERROR "ERROR: %s is not a valid object name.  \nCan only contain letters, digits, and underscores. \nAn optional user name followed by a '+' may also prepend the object name.\n"
 #define FILE_ERROR "ERROR: %s is not a valid file name.  \nCan only contain letters, digits, and underscores, and must end in '.txt'\n"
 #define ACL_ERROR "ERROR: \"%s\" is not a valid ACL string.  \nCan only contain a valid object name or '*', \nfollowed by '.', followed by a valid object name or '*', \nfollowed by a space and any subset of r,w,x,p,v.\n"
+#define OP_ERROR "ERROR: '%s' is not a valid operation.  Please enter 'r', 'w', 'x', 'p', or 'v'.\n"
 
 static regex_t re;
 regmatch_t match[2];
@@ -43,6 +45,10 @@ int namechecking_check(char *name, NAME_TYPE which)
 		case ACLS:
 			regex = ACL_REGEX;
 			error_message = ACL_ERROR;
+			break;
+		case OPS:
+			regex = OP_REGEX;
+			error_message = OP_ERROR;
 			break;
 	}
 	if (regcomp(&re, regex, REG_EXTENDED | REG_ICASE | REG_NEWLINE) != 0)

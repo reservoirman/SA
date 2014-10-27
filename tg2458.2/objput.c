@@ -111,59 +111,7 @@ int main (int argc, char **argv)
 		}
 	}
 
-	if (namechecking_validateInputs(user_name, group_name, argv[optind]) == 0)
-	{
-		int success = -1;
-		//check if an ACL for this object already exists		
-		char *acl = objects_readObject(user_name, argv[optind], ACL);
-		if (acl != NULL)
-		{
 
-			//if so, check the acl to see if this user is 
-			//allowed to write to the file
-			if (aclchecking_isValidOp(user_name, group_name, acl, "w\0") == 0)
-			{
-				success = 0;
-			}
-			//if the user is not allowed to write to the file,
-			//check to see if the user is allowed to modify the acl to enable 
-			//the user to do so:
-			else if (aclchecking_isValidOp(user_name, group_name, acl, "p\0") == 0)
-			{
-				success = 0;
-			}
-		}
-		//if the ACL for this object didn't exist before, 
-		//create the ACL for it
-		else
-		{
-			char *newacl = (char *)malloc(MAXNAMELENGTH + 20);
-			sprintf(newacl, "%s.*\trwxpv\n", user_name);
-			if(objects_createObject(user_name, argv[optind], newacl, ACL) == 0)
-			{	
-				free(newacl);
-				success = 0;
-				printf("OBJPUT: Created a new object ACL %s for user %s.\n", argv[optind], user_name);
-			}	
-		}
-
-		//finally, if all is well, create/update the object itself:
-		if (success == 0)
-		{
-			if (objects_createObject(user_name, argv[optind], buffer, DATA) == -1)
-			{				
-				printf("Failed to create object %s.  Please try again.\n", argv[optind]);
-			}
-			else
-			{
-				printf("OBJPUT: object written!\n");
-			}
-		}
-
-	}
-
-	free(user_name);
-	free(group_name);
 
 
 
