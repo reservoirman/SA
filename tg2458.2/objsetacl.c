@@ -41,21 +41,22 @@ int main (int argc, char **argv)
 	//if the user and group are valid, and if the names are all synctactically correct:
 	if (namechecking_validateInputs(user_name, group_name, argv[optind]) == 0)
 	{
-		//check if the ACL message is good
-		if (namechecking_check(buffer, ACLS) == 0)
-		{
-			
-		}
-
-		//check if this object exists		
+		//check if the ACL for the object exists and that the ACL message is good	
 		char *acl = objects_readObject(user_name, argv[optind], ACL);
 		if (acl != NULL)
 		{
-			//if so, check the acl to see if this user is 
-			//allowed to write to the acl
-			if (aclchecking_isValidOp(user_name, group_name, acl, "p\0") == 0)
+			if (namechecking_check(buffer, ACLS) == 0)
 			{
-				objects_createObject(user_name, argv[optind], buffer, ACL);
+				//if so, check the acl to see if this user is 
+				//allowed to write to the acl
+				if (aclchecking_isValidOp(user_name, group_name, acl, "p\0") == 0)
+				{
+					objects_createObject(user_name, argv[optind], buffer, ACL);
+				}
+				else
+				{
+					printf("%s does not have permission to alter the list for %s.\n", user_name, argv[optind]);
+				}			
 			}
 		}
 		else

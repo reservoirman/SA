@@ -1,13 +1,13 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
-#include "namechecking.h"
+#include <stdlib.h>
 #include "aclchecking.h"
 
-static char _currentACL[MAXNAMELENGTH + 20];
+static char *_currentACL;
 
 static ACLERRNO _errno;
-static char *r = "read from the object",
+static char *r = "read the object",
 			*w = "write to the object",
 			*x = "execute the object",
 			*p = "change this object's ACL",
@@ -59,38 +59,65 @@ void aclchecking_printErrno(char *user_name, char *group_name, char *op)
 //checks if the desired action is permissible given the particular access control list
 int aclchecking_isValidOp(char *user_name, char *group_name, char *acl, char *op)
 {
-	int success = 0;
-	//break it up into three tokens- user, group(s), and ops
-	char *acl_ref =acl, *token = strtok_r(acl, ".", &acl_ref);
-	if (token != NULL && strncmp(token, user_name, strlen(user_name)) == 0)
+	int success = -1;
+	char *acl_ref, *acl_line;
+	
+	//let's copy the acl to a local string so we can do work on it.
+	char *acl_local = (char *)malloc(strlen(acl));
+	strcpy(acl_local, acl);
+	printf("The ACL:\n%s\n", acl_local);
+	//break up the ACL by line:
+	acl_ref = acl_local, acl_line = strtok_r(acl_local, "\n", &acl_ref);
+			
+	while(acl_line != NULL)
 	{
-		token = strtok_r(NULL, "\t ", &acl_ref);
-		if (token != NULL && token[0] == '*' || strncmp(token, group_name, strlen(group_name)) == 0)
+		//printf("The current ACL: %s\n", acl_line);
+		//let's copy the line to a local string so we can work off that:
+		char *acl_line_local = (char *)malloc(strlen(acl_line) + 1);
+		strcpy(acl_line_local, acl_line);
+		
+		//break each line up into three tokens- user, group(s), and ops
+		char *acl_line_ref = acl_line_local, *token = strtok_r(acl_line_local, ".", &acl_line_ref);
+		
+		if (token != NULL && token[0]== '*' || strncmp(token, user_name, strlen(user_name)) == 0)
 		{
-			token = strtok_r(NULL, "\t\n ", &acl_ref);
-			memset(_currentACL, 0, MAXNAMELENGTH + 20);
-			strcpy(_currentACL, token);
-
-			if (token == NULL || strstr(token, op) == NULL)
+			token = strtok_r(NULL, "\t ", &acl_line_ref);
+			if (token != NULL && token[0] == '*' || strncmp(token, group_name, strlen(group_name)) == 0)
+			{
+				token = strtok_r(NULL, "\n", &acl_line_ref);
+				if (token != NULL && strstr(token, op) != NULL)
+				{
+					success = 0;
+					_currentACL = (char *)malloc(strlen(token));
+					strcpy(_currentACL, token);
+					_errno = ACL_SUCCESS;
+					break;
+						
+				}
+				else
+				{
+					//this user of this group has permission to do the op!!!!
+					_errno = ACL_USERCANNOT;
+				}
+			}
+			else
 			{
 				success = -1;
-				_errno = ACL_USERCANNOT;
-				
+				_errno = ACL_GROUPCANNOT;
 			}
 		}
 		else
 		{
 			success = -1;
-			_errno = ACL_GROUPCANNOT;
+			_errno = ACL_USERINVALID;
+
 		}
-	}
-	else
-	{
-		success = -1;
-		_errno = ACL_USERINVALID;
+		free(acl_line_local);
 
-	}
+		acl_line = strtok_r(NULL, "\n", &acl_ref);
+	}	
 
+	free(acl_local);
 	return success;
 }
 

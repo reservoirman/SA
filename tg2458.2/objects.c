@@ -4,6 +4,7 @@
 #include <stdlib.h>		//for malloc, free
 #include <dirent.h>		//for opendir, getcwd, readdir, closedir
 #include <sys/stat.h>	//for stat, S_ISREG
+#include <errno.h>
 #include "objects.h"
 #include "linkedlist.h"
 #include "namechecking.h"
@@ -74,7 +75,11 @@ static int _createUserList()
 			}
 			printf("!!!\n");
 		}*/
+	}
 
+	if (file == NULL)
+	{
+		printf("Could not open file to initialize user/group list!!! %s\n", strerror(errno));
 	}
 	
 	return success;
@@ -84,26 +89,30 @@ ValidType objects_isValidUserGroup(char *iUser, char *iGroup)
 {
 	ValidType success = BADUSER;
 	int i, total_users = _createUserList();
-	for (i =0; i < total_users; i++)
+	if (total_users != -1)
 	{
-		//if iUser is found in the list of users
-		if (strcmp((char *)users_group_list[i]->item, (char *)iUser) == 0)
+		for (i =0; i < total_users; i++)
 		{
-			//if iGroup is found in the list of groups for iUser
-			if (iGroup[0] == '*' || linkedlist_searchItem(users_group_list[i], iGroup) == 0)
+			//if iUser is found in the list of users
+			if (strcmp((char *)users_group_list[i]->item, (char *)iUser) == 0)
 			{
-				//iUser and iGroup are valid!
-				success = GOOD;
-			}
-			else
-			{
-				success = BADGROUP;
+				//if iGroup is found in the list of groups for iUser
+				if (iGroup[0] == '*' || linkedlist_searchItem(users_group_list[i], iGroup) == 0)
+				{
+					//iUser and iGroup are valid!
+					success = GOOD;
+				}
+				else
+				{
+					success = BADGROUP;
+				}
+
+				break;
 			}
 
-			break;
-		}
-
+		}	
 	}
+
 	return success;
 }
 
@@ -119,15 +128,14 @@ static char * _constructFileName(char *user, char *name)
 	return filename;
 }
 
-static char * _constructACLName(char *user, char *name)
+static char * _constructACLName(char *name)
 {
-	int aclnamelength = strlen(user) + strlen(name) + 7;
+	int aclnamelength = strlen(name) + 7;
 	char *aclname = (char *)malloc(aclnamelength);
 	
 	strcpy(aclname, "acl");
-	strcpy(aclname + 3, user);
-	strcpy(aclname + 3 + strlen(user), name);
-	strcpy(aclname + 3 + strlen(user) + strlen(name), ".txt");
+	strcpy(aclname + 3, name);
+	strcpy(aclname + 3 + strlen(name), ".txt");
 	
 	return aclname;
 }
@@ -153,7 +161,7 @@ int objects_createObject(char *iUser, char *iName, char *content, ObjectType whi
 	}
 	else
 	{
-		filename = _constructACLName(iUser, iName);
+		filename = _constructACLName(iName);
 	}
 	//creating the file for the object
 	file = fopen(filename, "w+");
@@ -225,7 +233,7 @@ char * objects_readObject(char *user, char *name, ObjectType which)
 	}
 	else 
 	{
-		filename = _constructACLName(user, name);
+		filename = _constructACLName(name);
 	}
 	file = fopen(filename, "r");
 	if (file > 0)

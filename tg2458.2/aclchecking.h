@@ -2,6 +2,7 @@
 #define __ACLCHECKING_H__
 
 typedef enum {
+	ACL_SUCCESS = 0,
 	ACL_USERCANNOT = -1, 
 	ACL_GROUPCANNOT = -2, 
 	ACL_USERINVALID = -3, 

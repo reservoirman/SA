@@ -6,16 +6,20 @@
 #include "namechecking.h"
 #include "objects.h"
 
-#define OBJECT_REGEX    "[a-Z0-9_]+"
+#define USER_REGEX		"[a-Z0-9_]+"
+#define OBJECT_REGEX    "[a-Z0-9_]+|([a-Z0-9_]+\\+[a-Z0-9_]+)"
 #define FILE_REGEX		"[a-Z0-9_]+.txt"
 #define ACL_REGEX		"[[:space:]]*(([a-Z0-9_]+|\\*).([a-Z0-9_]+|\\*)[[:blank:]]+[rwxpv]{1,5}[[:space:]]*)+"
 
-#define OBJECT_ERROR "%s is not a valid object name.  \nCan only contain letters, digits, and underscores.\n"
-#define FILE_ERROR "%s is not a valid file name.  \nCan only contain letters, digits, and underscores, and must end in '.txt'\n"
-#define ACL_ERROR "%s is not a valid ACL string.  \nCan only contain a valid object name or '*', followed by '.', followed by a valid object name or '*', followed by a space and any subset of r,w,x,p,v.\n"
+#define USER_ERROR "ERROR: %s is not a valid user name.  \nCan only contain letters, digits, and underscores.\n"
+#define OBJECT_ERROR "ERROR: %s is not a valid object name.  \nCan only contain letters, digits, and underscores. \nAn optional user name followed by a '+' may also prepend the object name.\n"
+#define FILE_ERROR "ERROR: %s is not a valid file name.  \nCan only contain letters, digits, and underscores, and must end in '.txt'\n"
+#define ACL_ERROR "ERROR: \"%s\" is not a valid ACL string.  \nCan only contain a valid object name or '*', \nfollowed by '.', followed by a valid object name or '*', \nfollowed by a space and any subset of r,w,x,p,v.\n"
 
 static regex_t re;
 regmatch_t match[2];
+
+static char _star = '*';
 
 int namechecking_check(char *name, NAME_TYPE which)
 {
@@ -31,6 +35,10 @@ int namechecking_check(char *name, NAME_TYPE which)
 		case OBJECTS:
 			regex = OBJECT_REGEX;
 			error_message = OBJECT_ERROR;
+			break;	
+		case USERS:
+			regex = USER_REGEX;
+			error_message = USER_ERROR;
 			break;
 		case ACLS:
 			regex = ACL_REGEX;
@@ -69,16 +77,6 @@ char * namechecking_copyName(char *name)
 	return user_name;
 }
 
-
-int namechecking_validateACL(char *acl)
-{
-	int success = -1;
-	char buffer[1024];
-
-
-
-}
-
 int namechecking_validateInputs(char *user_name, char *group_name, char *object_name)
 {
 	int success = -1;
@@ -96,21 +94,49 @@ int namechecking_validateInputs(char *user_name, char *group_name, char *object_
 	{
 		//checking if the user, group, and object names are syntactically valid
 		int isValid = 0;
-		isValid |= namechecking_check(user_name, OBJECTS);
+		isValid |= namechecking_check(user_name, USERS);
 		isValid |= namechecking_check(object_name, OBJECTS);
 		if (group_name == NULL)
 		{
 
-			group_name = (char *)malloc(1);
-			group_name[0] = '*';
+			group_name = &_star;
 		}
-		else isValid |= namechecking_check(group_name, OBJECTS);
+		else isValid |= namechecking_check(group_name, USERS);
 
 		//if the user, group and object names are syntactically valid
 		if (isValid == 0)
 		{
+			//check if the object name contains a separate user name
+			char *plus = "+";
+			char object_local[strlen(object_name)];
+			strcpy(object_local, object_name);
+			if (strstr(object_local, plus) != NULL)
+			{
+				char *user = strtok(object_local, plus);
+				char *object = strtok(NULL, plus);
+				
+				//check if the user and group are valid
+				printf("User = %s, Group Name = %s\n\n", user, group_name);
+				ValidType result = objects_isValidUserGroup(user, group_name);
+				
+				switch (result)
+				{
+					case BADUSER:
+						printf("%s is not a valid user!  Please try again.\n", user);
+						break;
+					case BADGROUP:
+						printf("%s is not a valid group for %s!  Please try again.\n", group_name, user_name);
+						break;
+					case GOOD:
+						success = 0;
+					break;
+				}
+			}
+
 			//check if the user and group are valid
+			printf("User= %s, Group Name = %s\n", user_name, group_name);
 			ValidType result = objects_isValidUserGroup(user_name, group_name);
+
 			switch (result)
 			{
 				case BADUSER:

@@ -1,7 +1,7 @@
 # A simple Makefile
 
 # List the object files in one place
-OBJ=messaging.o aclchecking.o namechecking.o objects.o linkedlist.o
+OBJ=objectprograms.o messaging.o aclchecking.o namechecking.o objects.o linkedlist.o
 
 PRG=objlist objget objput objsetacl objtestacl objgetacl
 
@@ -11,7 +11,7 @@ PRG=objlist objget objput objsetacl objtestacl objgetacl
 all: clean messaging aclchecking namechecking objects linkedlist objectprograms angel objtestacl objgetacl objsetacl objput objget objlist initializer 
 
 angel:
-	gcc -o angel.out objectprograms.o messaging.o angel.c
+	gcc -o angel.out $(OBJ) angel.c
 
 objectprograms:
 	gcc -c objectprograms.c

@@ -41,13 +41,12 @@ int main (int argc, char **argv)
 	//if the user and group are valid, and if the names are all synctactically correct:
 	if (namechecking_validateInputs(user_name, group_name, argv[optind]) == 0)
 	{
-
+		printf("THE obj: %s\n", argv[optind]);
 
 		//check if this object exists		
 		char *acl = objects_readObject(user_name, argv[optind], ACL);
+		printf("THE ACL: %s\n", acl);
 		//check if the ACL for this object is good
-		namechecking_validateACL(acl);
-
 		if (acl != NULL && namechecking_check(acl, ACLS) == 0)
 		{
 			//if so, check the acl to see if this user is 
@@ -58,7 +57,7 @@ int main (int argc, char **argv)
 				char *theACL = objects_readObject(user_name, argv[optind], ACL);
 				if (theACL != NULL)
 				{
-					printf("%s\n", aclchecking_getACL());	
+					printf("%s\n", theACL);	
 				}
 			}
 			else

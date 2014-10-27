@@ -30,7 +30,7 @@ static char _file[FILE_SIZE] = {0};
 //to mark where we at filling in _file
 static char *_marker;
 
-int no_index_runner(char *a, char *b, char *c, char *d)
+int no_index_runner(char *a, char *b, char *c, char *d, char *e)
 {
 	printf("no_index_runner called!!!\n");
 	return 0;
@@ -53,7 +53,7 @@ static void _closeMessageQueue()
 	if (messaging_close() == 0)
 	{
 		printf("closed the message queue!  Angel exiting.\n");
-		_jump_table[_current_index](NULL, NULL, NULL, NULL);
+		_jump_table[_current_index](NULL, NULL, NULL, NULL, NULL);
 	}
 	else
 	{
@@ -65,11 +65,28 @@ static void _closeMessageQueue()
 
 static void _callObjectProgram(MessagingType *out, MessageTypeIndex index)
 {
+	int result = -1;
 	struct Request *r = &out->request;
 	//reset file marker once we are calling on object program
 	_marker = _file;
-	//passing in the user, group, object, and content and call object program
-	int result = _jump_table[index](r->user, r->group, r->object, _file);
+
+	//if the user, group, and object are all fine and dandy:
+	if (namechecking_validateInputs(r->user, r->group, r->object) == 0)
+	{	
+		//check if the object name includes a separate username
+		char *plus = "+", *second_user = NULL, *object_name = NULL;
+		//if so, extract the user name, pass that into the function as the 2nd user
+		if (strstr(r->object, plus) != NULL)
+		{
+			second_user = strtok(r->object, plus);
+			object_name = strtok(NULL, plus);
+			result = _jump_table[index](r->user, second_user, r->group, object_name, _file);
+		}
+		else
+		{
+			result = _jump_table[index](r->user, r->user, r->group, r->object, _file);
+		}
+	}
 	
 	//obtain the result of that program and send back to the program
 	messaging_sendFinished(result);

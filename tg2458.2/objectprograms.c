@@ -9,90 +9,65 @@
 #include "objects.h"
 #include "objectprograms.h"
 #include "messaging.h"
+#include "aclchecking.h"
 #include <sys/msg.h>
 
 static char buffer[OBJECT_SIZE];
 
 static MessagingType _objput_message;
 
-int objects_objput(char *a, char *b, char *c, char *d)
+int objects_objput(char *u1, char *u2, char *g, char *o, char *c)
 {
-	//this should all go in the daemon:
+	int success = -1;
 	
-	//if the user and group are valid, and if the names are all synctactically correct:
-	//if (namechecking_validateInputs(user_name, group_name, argv[optind]) == 0)
-	/*
+	//check if this object already exists		
+	char *acl = objects_readObject(u2, o, ACL);
+	if (acl != NULL)
 	{
-		int success = -1;
-		//check if this object already exists		
-		char *acl = objects_readObject(user_name, argv[optind], ACL);
-		if (acl != NULL)
+		//if so, check the acl to see if this user is 
+		//allowed to read from the file
+		if (aclchecking_isValidOp(u1, g, acl, "r") == 0)
 		{
-
-			//if so, check the acl to see if this user is 
-			//allowed to write to the file
-			if (aclchecking_isValid(user_name, group_name, acl, "w\0", (char *)"write to the object", 0) == 0)
-			{
-				success = 0;
-			}
+			//if we do have permission, let's go ahead and read the file
+			char *contents = objects_readObject(u2, o, DATA);
+			if (contents != NULL)
+			printf("%s", contents);
+			success = 0;
 		}
-		//if this object didn't exist before, 
-		//creat the acl for it
 		else
 		{
-			char *newacl = (char *)malloc(MAXNAMELENGTH + 20);
-			sprintf(newacl, "%s.*\trwxpv\n", user_name);
-			if(objects_createObject(user_name, argv[optind], newacl, ACL) == 0)
-			{	
-				free(newacl);
-				success = 0;
-				printf("OBJPUT: Created a new object ACL %s for user %s.\n", argv[optind], user_name);
-			}	
+			aclchecking_printErrno(u1, g, "r\0");
 		}
-
-		//finally, if all is well, create/update the object itself:
-		if (success == 0)
-		{
-			if (objects_createObject(user_name, argv[optind], buffer, DATA) == -1)
-			{				
-				printf("Failed to create object %s.  Please try again.\n", argv[optind]);
-			}
-			else
-			{
-				printf("OBJPUT: object written!\n");
-			}
-		}
-
+	}
+	else
+	{
+		printf("%s is not a valid object.  Please try again. \n", o);
 	}
 
-	free(user_name);
-	free(group_name);*/
-	printf("objects_objget called!!!\n");
-
-	return 1004;
+	return success;
 }
 
-int objects_objget(char *user, char *group, char *object, char *content)
+int objects_objget(char *u1, char *u2, char *g, char *o, char *c)
 {
 
 }
 
-int objects_objlist(char *a, char *b, char *c, char *d)
+int objects_objlist(char *u1, char *u2, char *g, char *o, char *c)
 {
 	
 }
 
-int objects_objsetacl(char *a, char *b, char *c, char *d)
+int objects_objsetacl(char *u1, char *u2, char *g, char *o, char *c)
 {
 	
 }
 
-int objects_objgetacl(char *a, char *b, char *c, char *d)
+int objects_objgetacl(char *u1, char *u2, char *g, char *o, char *c)
 {
 	
 }
 
-int objects_objtestacl(char *a, char *b, char *c, char *d)
+int objects_objtestacl(char *u1, char *u2, char *g, char *o, char *c)
 {
 	
 }

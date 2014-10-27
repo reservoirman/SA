@@ -6,13 +6,37 @@
 #include "namechecking.h"
 #include "aclchecking.h"
 
-
+int callObjGet(char *u1, char *u2, char *g, char *o)
+{
+		//check if this object already exists		
+		char *acl = objects_readObject(u2, o, ACL);
+		if (acl != NULL)
+		{
+			//if so, check the acl to see if this user is 
+			//allowed to read from the file
+			if (aclchecking_isValidOp(u1, g, acl, "r") == 0)
+			{
+				//if we do have permission, let's go ahead and read the file
+				char *contents = objects_readObject(u2, o, DATA);
+				if (contents != NULL)
+				printf("%s", contents);
+			}
+			else
+			{
+				aclchecking_printErrno(u1, g, "r\0");
+			}
+		}
+		else
+		{
+			printf("%s is not a valid object.  Please try again. \n", o);
+		}
+}
 
 
 int main (int argc, char **argv)
 {
 
-	int opt, success = 0;
+	int opt, success = -1;
 	char *user_name = NULL, *group_name = NULL;
 
 	while ((opt = getopt(argc, argv, ":u:g:")) != -1)
@@ -41,24 +65,18 @@ int main (int argc, char **argv)
 	//if the user, group, and object are all fine and dandy:
 	if (namechecking_validateInputs(user_name, group_name, argv[optind]) == 0)
 	{	
-		//check if this object already exists		
-		char *acl = objects_readObject(user_name, argv[optind], ACL);
-		if (acl != NULL)
+		char *plus = "+", *second_user = NULL, *object_name = NULL;
+		if (strstr(argv[optind], plus) != NULL)
 		{
-			//if so, check the acl to see if this user is 
-			//allowed to read from the file
-			if (aclchecking_isValidOp(user_name, group_name, acl, "r\0") == 0)
-			{
-				//if we do have permission, let's go ahead and read the file
-				char *contents = objects_readObject(user_name, argv[optind], DATA);
-				if (contents != NULL)
-				printf("%s", contents);
-			}
+			second_user = strtok(argv[optind], plus);
+			object_name = strtok(NULL, plus);
+			callObjGet(user_name, second_user, group_name, object_name);
 		}
 		else
 		{
-			printf("%s is not a valid object.  Please try again. \n", argv[optind]);
+			callObjGet(user_name, user_name, group_name, argv[optind]);
 		}
+
 	}
 
 	free(user_name);

@@ -69,7 +69,9 @@ int main (int argc, char **argv)
 		{
 			//check if this object exists		
 			char *acl = objects_readObject(user_name, argv[optind], ACL);
-			if (acl != NULL)
+
+			//doublecheck that the content is good:
+			if (acl != NULL && namechecking_check(acl, ACLS) == 0)
 			{
 				sprintf(output, "denied\n");
 				//call this to extract the ACL block
@@ -81,6 +83,7 @@ int main (int argc, char **argv)
 				{
 					//get the ACL block
 					acl = aclchecking_getACL();
+
 					//check if it allows permissions
 					if (strstr(acl, op_name))
 					{

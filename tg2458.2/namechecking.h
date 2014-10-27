@@ -3,7 +3,7 @@
 
 #define MAXNAMELENGTH 100
 
-typedef enum { FILES, OBJECTS, ACLS} NAME_TYPE;
+typedef enum { USERS, FILES, OBJECTS, ACLS} NAME_TYPE;
 
 //function prototype 
 int namechecking_check(char *name, NAME_TYPE which);
