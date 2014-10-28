@@ -65,7 +65,6 @@ int objects_objput(char *u1, char *u2, char *g, char *o, char *c)
 int objects_objget(char *u1, char *u2, char *g, char *o, char *c)
 {
 	int success = -1;
-	
 	//check if this object already exists		
 	char *acl = objects_readObject(u2, o, ACL);
 	if (acl != NULL)
@@ -77,12 +76,12 @@ int objects_objget(char *u1, char *u2, char *g, char *o, char *c)
 			//if we do have permission, let's go ahead and read the file
 			char *contents = objects_readObject(u2, o, DATA);
 			if (contents != NULL)
-			printf("%s", contents);
+			printf("%s\n", contents);
 			success = 0;
 		}
 		else
 		{
-			aclchecking_printErrno(u1, g, "r\0");
+			aclchecking_printErrno(u1, g, "r");
 		}
 	}
 	else
@@ -98,7 +97,7 @@ int objects_objlist(char *u1, char *u2, char *g, char *o, char *c)
 	int success = -1;
 	int show_length = 0;
 	char *length = "l";
-	if (strstr(c, length) != NULL)
+	if (strstr(o, length) != NULL)
 	{
 		show_length = 1;
 	}
@@ -130,7 +129,7 @@ int objects_objsetacl(char *u1, char *u2, char *g, char *o, char *c)
 			}
 			else
 			{
-				printf("%s does not have permission to alter the list for %s.\n", u1, o);
+				aclchecking_printErrno(u1, g, "p");
 			}			
 		}
 	}
@@ -148,7 +147,6 @@ int objects_objgetacl(char *u1, char *u2, char *g, char *o, char *c)
 
 	//check if this object exists		
 	char *acl = objects_readObject(u2, o, ACL);
-	printf("THE ACL: %s\n", acl);
 	//check if the ACL for this object is still good
 	if (acl != NULL && namechecking_check(acl, ACLS) == 0)
 	{
@@ -157,7 +155,7 @@ int objects_objgetacl(char *u1, char *u2, char *g, char *o, char *c)
 		if (aclchecking_isValidOp(u1, g, acl, "v") == 0)
 		{
 			//read out the ACL and print it to the console
-			char *theACL = objects_readObject(u2, o, ACL);
+			char *theACL = aclchecking_getACL();
 			if (theACL != NULL)
 			{
 				printf("%s\n", theACL);	
@@ -167,7 +165,7 @@ int objects_objgetacl(char *u1, char *u2, char *g, char *o, char *c)
 		}
 		else
 		{
-			aclchecking_printErrno(u1, g, "v\0");
+			aclchecking_printErrno(u1, g, "v");
 		}
 	}
 	else

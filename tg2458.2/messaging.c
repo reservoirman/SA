@@ -49,8 +49,6 @@ int messaging_sendRequest(MessageType type, char *u, char *g, char *o)
 		strncpy(_theRequest.request.object, o, SIZE(o));
 		_theRequest.message_type = type;
 
-		printf("MSGSND dump: %s\n", _theRequest.data.content);
-
 		success = msgsnd(_msgid, (void *)&_theRequest, sizeof(MessagingType), 0);
 
 		if (success == -1)
@@ -104,8 +102,6 @@ int messaging_sendFinished(int return_code)
 	{
 		_theFinish.return_code = return_code;
 		_theFinish.message_type = FINISHED;
-
-		printf("messaging_sendFinished dump: %d\n", _theFinish.return_code);
 
 		if (msgsnd(_msgid2, (void *)&_theFinish, sizeof(_theFinish), IPC_NOWAIT) != -1)
 		{

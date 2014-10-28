@@ -4,13 +4,14 @@
 #include <stdlib.h>
 #include "aclchecking.h"
 
-static char *_currentACL;
+static char _currentACL[5] = { 0 };
+static char _star = '*';
 
 static ACLERRNO _errno;
 static char *r = "read the object",
 			*w = "write to the object",
 			*x = "execute the object",
-			*p = "change this object's ACL",
+			*p = "alter this object's ACL",
 			*v = "view this object's ACL";
 
 void aclchecking_printErrno(char *user_name, char *group_name, char *op)
@@ -65,10 +66,14 @@ int aclchecking_isValidOp(char *user_name, char *group_name, char *acl, char *op
 	//let's copy the acl to a local string so we can do work on it.
 	char *acl_local = (char *)malloc(strlen(acl));
 	strcpy(acl_local, acl);
-	printf("The ACL:\n%s\n", acl_local);
 	//break up the ACL by line:
 	acl_ref = acl_local, acl_line = strtok_r(acl_local, "\n", &acl_ref);
-			
+	
+	if (group_name == NULL)
+	{
+		group_name = &_star;
+	}		
+
 	while(acl_line != NULL)
 	{
 		//printf("The current ACL: %s\n", acl_line);
@@ -88,7 +93,6 @@ int aclchecking_isValidOp(char *user_name, char *group_name, char *acl, char *op
 				if (token != NULL && strstr(token, op) != NULL)
 				{
 					success = 0;
-					_currentACL = (char *)malloc(strlen(token));
 					strcpy(_currentACL, token);
 					_errno = ACL_SUCCESS;
 					break;
@@ -109,7 +113,11 @@ int aclchecking_isValidOp(char *user_name, char *group_name, char *acl, char *op
 		else
 		{
 			success = -1;
-			_errno = ACL_USERINVALID;
+			if (_errno != ACL_USERCANNOT)
+			{
+				_errno = ACL_USERINVALID;
+			}
+
 
 		}
 		free(acl_line_local);

@@ -104,7 +104,6 @@ int namechecking_validateInputs(char *user_name, char *group_name, char *object_
 		isValid |= namechecking_check(object_name, OBJECTS);
 		if (group_name == NULL)
 		{
-
 			group_name = &_star;
 		}
 		else isValid |= namechecking_check(group_name, USERS);
@@ -121,8 +120,7 @@ int namechecking_validateInputs(char *user_name, char *group_name, char *object_
 				char *user = strtok(object_local, plus);
 				char *object = strtok(NULL, plus);
 				
-				//check if the user and group are valid
-				printf("User = %s, Group Name = %s\n\n", user, group_name);
+				//check if the second user and group are valid
 				ValidType result = objects_isValidUserGroup(user, group_name);
 				
 				switch (result)
@@ -131,7 +129,7 @@ int namechecking_validateInputs(char *user_name, char *group_name, char *object_
 						printf("%s is not a valid user!  Please try again.\n", user);
 						break;
 					case BADGROUP:
-						printf("%s is not a valid group for %s!  Please try again.\n", group_name, user_name);
+						printf("%s is not a valid group for %s!  Please try again.\n", group_name, user);
 						break;
 					case GOOD:
 						success = 0;
@@ -139,8 +137,7 @@ int namechecking_validateInputs(char *user_name, char *group_name, char *object_
 				}
 			}
 
-			//check if the user and group are valid
-			printf("User= %s, Group Name = %s\n", user_name, group_name);
+			//check if the (first) user and group are valid
 			ValidType result = objects_isValidUserGroup(user_name, group_name);
 
 			switch (result)

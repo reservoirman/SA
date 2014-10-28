@@ -64,15 +64,7 @@ test_objput: test_objput.c
 # Execution will stop if a program has a non-zero return code;
 # precede the line with a - to override that
 test:	all  
-	@echo "Testing objput:"
-	./initializer $(userfile)
-	./objput -u lk holla < README
-	./objget -u lk holla
-	./objlist -u lk
-	./objtestacl -u lk -a w holla
-	./objtestacl -u lk -a v holla
-	./objgetacl -u lk holla
-	./objsetacl -u lk holla < ALLACCESS
+	bash run1.sh
 
 	@echo "------------"
 	

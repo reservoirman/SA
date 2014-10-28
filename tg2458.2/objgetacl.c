@@ -2,73 +2,70 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include "objects.h"
-#include "aclchecking.h"
+#include <sys/types.h>		//for uid_t and gid_t
+#include <pwd.h>			//for struct passwd
+#include <grp.h>			//for struct grp
 #include "namechecking.h"
+#include "objects.h"
+#include "messaging.h"
+#include <sys/msg.h>
 
 static char buffer[OBJECT_SIZE];
 
 
 int main (int argc, char **argv)
 {
-	int opt, success = 0;
-	char *user_name = NULL, *group_name = NULL;
+	int opt, success = -1, result = -1;
 
+	uid_t uid = getuid();
+	struct passwd *us = getpwuid(uid);
 
-	while ((opt = getopt(argc, argv, ":u:g:")) != -1)
+	//extract the group
+	gid_t gid = getgid();
+	struct group *gs = getgrgid(gid);
+
+	//validate the user and group names
+	if (us != NULL && gs != NULL)
 	{
-		switch (opt)
+		if (argc == 2)
 		{
-			case 'u':
-				user_name = namechecking_copyName(optarg);
-				break;
-			case 'g':
-				group_name = namechecking_copyName(optarg);
-				break;
-			case ':':
-			printf("Option needs a value\n");
-			break;
-			case '?':
-			printf("Unknown option: %c\n", optopt);
-			break;
-			default:
-			printf ("Invalid input.  Please try again.\n");
-			break;
-
-		}
-	}
-
-	//if the user and group are valid, and if the names are all synctactically correct:
-	if (namechecking_validateInputs(user_name, group_name, argv[optind]) == 0)
-	{
-		printf("THE obj: %s\n", argv[optind]);
-
-		//check if this object exists		
-		char *acl = objects_readObject(user_name, argv[optind], ACL);
-		printf("THE ACL: %s\n", acl);
-		//check if the ACL for this object is good
-		if (acl != NULL && namechecking_check(acl, ACLS) == 0)
-		{
-			//if so, check the acl to see if this user is 
-			//allowed to read out the acl
-			if (aclchecking_isValidOp(user_name, group_name, acl, "v\0") == 0)
+			//if (namechecking_validateInputs(us->pw_name, gs->gr_name, argv[1]) == 0)
 			{
-				//read out the ACL and print it to the console
-				char *theACL = objects_readObject(user_name, argv[optind], ACL);
-				if (theACL != NULL)
-				{
-					printf("%s\n", theACL);	
-				}
-			}
-			else
-			{
-				aclchecking_printErrno(user_name, group_name, "v\0");
+					//now to construct the request message to send to the angel
+					result = messaging_sendRequest(OBJGETACL, us->pw_name, gs->gr_name, argv[1]);
+					if (result == 0)
+					{
+						//if successful, send the content
+						//divide the file into chunks of 0x1A74 bytes long and send them and rebuild the file
+						MessagingFinishType *holla = messaging_receiveFinished();
+						if (holla != NULL)
+						{
+							success = holla->return_code;	
+						}
+						else
+						{
+							printf("What the, why was finish structure null???\n");
+						}
+					}
+					else
+					{
+						printf("OBJGETACL error: message was not sent to daemon\n");
+						
+					}
+				
+				//the daemon should then create the file with root only permissions
 			}
 		}
 		else
 		{
-			printf("%s is not a valid object.  Please try again. \n", argv[optind]);
+			printf("OBJGETACL error: please enter the object name.\n");
 		}
 	}
+	else
+	{
+		printf("OBJGETACL error: failed to obtain user/group names.  Try again.\n");
+	}		
+
+	return success;
 
 }

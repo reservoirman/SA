@@ -87,6 +87,8 @@ static void _callObjectProgram(MessagingType *out, MessageTypeIndex index)
 			result = _jump_table[index](r->user, r->user, r->group, r->object, _file);
 		}
 	}
+	//clear the buffer
+	memset(_file, 0, FILE_SIZE);
 	
 	//obtain the result of that program and send back to the program
 	messaging_sendFinished(result);
@@ -101,7 +103,6 @@ static void _buildingUpContent(MessagingType *out)
 	{
 		//reset file marker back to beginning of buffer
 		_marker = _file;
-		printf("THE CONTENT!!!! %s\n!!!!!!!!\n\n\n\n", _file);
 	}
 	//if this is not eof, keep accumulating data
 	else
@@ -119,7 +120,9 @@ static void _messageDaemon()
 	if (set != -1)
 	{
 		umask(077);		//any files that the daemon creates, only the owner (root) can access them.
-		
+
+		chdir("enclave/");
+
 		//if we created the message queues successfully, start the daemon loop
 		if (messaging_init() != -1)
 		{

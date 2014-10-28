@@ -5,6 +5,9 @@
 #include <dirent.h>		//for opendir, getcwd, readdir, closedir
 #include <sys/stat.h>	//for stat, S_ISREG
 #include <errno.h>
+#include <sys/types.h>		//for uid_t and gid_t
+#include <pwd.h>			//for struct passwd
+#include <grp.h>			//for struct grp
 #include "objects.h"
 #include "linkedlist.h"
 #include "namechecking.h"
@@ -20,10 +23,16 @@ static int _createUserList()
 {
 	int success = -1, i = 0, j;
 	char initializer_filename[MAXNAMELENGTH];
+
+	//extract the user name
+	uid_t uid = getuid();
+	struct passwd *us = getpwuid(uid);
+
+
+	chdir("enclave/");
 	file = fopen("initializer.txt", "r");
 	const char* space = " \n";
 	users_group_list = (Item **)malloc(sizeof(Item **));
-
 
 	if (file != NULL)
 	{
@@ -49,7 +58,7 @@ static int _createUserList()
 					while(token != NULL)
 					{
 						if ((token = strtok_r(NULL, space, &remaining)) != NULL)
-						{
+						{			
 							linkedlist_insertItem(users_group_list[i], (void *)token, strlen(token));
 							//printf("OBJECTS: group = %s\n", token);	
 						}
@@ -57,31 +66,19 @@ static int _createUserList()
 					}
 					i++; success = i;
 				}
-				fclose(file);
+				//these calls crash the system for some reason
+				//free(users_group_list);
+				//fclose(file);
+
 			}
 			
 		}
-
-		//test code; should be removed later
-		/*
-		for (j = 0; j < i; j++)
-		{
-			printf("OBJECTS: user ");
-			Item *aaa = users_group_list[j];
-			while(aaa != NULL)
-			{
-				printf(" %s ", (char *)aaa->item);
-				aaa = aaa->next;
-			}
-			printf("!!!\n");
-		}*/
 	}
 
 	if (file == NULL)
 	{
 		printf("Could not open file to initialize user/group list!!! %s\n", strerror(errno));
 	}
-	
 	return success;
 }
 
@@ -164,6 +161,7 @@ int objects_createObject(char *iUser, char *iName, char *content, ObjectType whi
 		filename = _constructACLName(iName);
 	}
 	//creating the file for the object
+	chdir("enclave");
 	file = fopen(filename, "w+");
 	if (file > 0)
 	{
@@ -206,11 +204,11 @@ int objects_listObjects(char *iUser, int option)
 
 					if (option == 1)
 					{
-						printf("%*s \t%d\n", MAXNAMELENGTH, object_name, (int)statbuf.st_size);				
+						printf("%s \tsize = %d\n", object_name, (int)statbuf.st_size);				
 					}
 					else
 					{
-						printf("%*s\n", MAXNAMELENGTH, object_name);
+						printf("%s\n", object_name);
 					}
 
 					free(object_name);
@@ -226,7 +224,8 @@ int objects_listObjects(char *iUser, int option)
 char * objects_readObject(char *user, char *name, ObjectType which)
 {
 	char *success = NULL, *filename = NULL;
-
+	//clear the buffer before a read:
+	memset(buffer, 0, OBJECT_SIZE);
 	if (which == DATA)
 	{
 		filename = _constructFileName(user, name);
