@@ -1,0 +1,6 @@
+This is homework assignment 2.  It is an object store providing access control lists for its objects.
+
+
+The password for root and tinyvm is Gangstas2013.
+Running 'make test' will execute the script to create users and groups.
+The script can also be run stand-alone; it's name is 'run1.sh'.
