@@ -38,7 +38,12 @@ int messaging_isAlive()
 	return (_msgid != -1 && _msgid2 != -1);
 }
 
-int messaging_sendRequest(MessageType type, char *u, char *g, char *o)
+int messaging_sendRequest1(MessageType type, char *u, char *g, char *o)
+{
+	messaging_sendRequest2(type, u, g, o, "don't care\0");
+}
+
+int messaging_sendRequest2(MessageType type, char *u, char *g, char *o, char *p)
 {
 	int success = -1;
 
@@ -47,6 +52,7 @@ int messaging_sendRequest(MessageType type, char *u, char *g, char *o)
 		strncpy(_theRequest.request.user, u, SIZE(u));
 		strncpy(_theRequest.request.group, g, SIZE(g));
 		strncpy(_theRequest.request.object, o, SIZE(o));
+		strncpy(_theRequest.request.passphrase, p, SIZE(p));
 		_theRequest.message_type = type;
 
 		success = msgsnd(_msgid, (void *)&_theRequest, sizeof(MessagingType), 0);

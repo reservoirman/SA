@@ -48,7 +48,7 @@ int main (int argc, char **argv)
 	if (us != NULL && gs != NULL)
 	{
 		//now to construct the request message to send to the angel
-		result = messaging_sendRequest(OBJLIST, us->pw_name, gs->gr_name, show);
+		result = messaging_sendRequest1(OBJLIST, us->pw_name, gs->gr_name, show);
 		if (result == 0)
 		{
 			//if successful, send the content

@@ -58,7 +58,7 @@ int main (int argc, char **argv)
 				if (result == 0)
 				{
 					//now to construct the request message to send to the angel
-					result = messaging_sendRequest(OBJSETACL, us->pw_name, gs->gr_name, argv[1]);
+					result = messaging_sendRequest1(OBJSETACL, us->pw_name, gs->gr_name, argv[1]);
 					if (result == 0)
 					{
 						//if successful, send the content

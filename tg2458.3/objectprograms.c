@@ -10,13 +10,14 @@
 #include "objectprograms.h"
 #include "messaging.h"
 #include "aclchecking.h"
+#include "objectcrypto.h"
 #include <sys/msg.h>
 
 static char buffer[OBJECT_SIZE];
 
 static MessagingType _objput_message;
 
-int objects_objput(char *u1, char *u2, char *g, char *o, char *c)
+int objects_objput(char *u1, char *u2, char *g, char *o, char *c, char *p)
 {
 	int success = -1;
 	//check if an ACL for this object already exists		
@@ -47,14 +48,16 @@ int objects_objput(char *u1, char *u2, char *g, char *o, char *c)
 	//finally, if all is well, create/update the object itself:
 	if (success == 1)
 	{
-		if (objects_createObject(u2, o, c, DATA) == -1)
+		//perform the crypto now
+		const unsigned char *ec = objectcrypto_encrypt(u2, o, c, p);
+		if (objects_createObject(u2, o, (char *)ec, DATA) == -1)
 		{				
 			printf("Failed to create object %s.  Please try again.\n", o);
 		}
 		else
 		{
 			success = 0;
-			printf("OBJPUT: object written!\n");
+			printf("OBJPUT: object written! Encrypted as %s:\n", ec);
 		}
 	}
 
@@ -62,7 +65,7 @@ int objects_objput(char *u1, char *u2, char *g, char *o, char *c)
 }
 
 
-int objects_objget(char *u1, char *u2, char *g, char *o, char *c)
+int objects_objget(char *u1, char *u2, char *g, char *o, char *c, char *p)
 {
 	int success = -1;
 	//check if this object already exists		
@@ -74,9 +77,11 @@ int objects_objget(char *u1, char *u2, char *g, char *o, char *c)
 		if (aclchecking_isValidOp(u1, g, acl, "r") == 0)
 		{
 			//if we do have permission, let's go ahead and read the file
-			char *contents = objects_readObject(u2, o, DATA);
-			if (contents != NULL)
-			printf("%s\n", contents);
+			unsigned char *ec = objects_readObject(u2, o, DATA);
+			//decrypt the contents now
+			const unsigned char *dc = objectcrypto_decrypt(u2, o, ec, p);
+			if (dc != NULL)
+				printf("%s\n", dc);
 			success = 0;
 		}
 		else
@@ -92,7 +97,7 @@ int objects_objget(char *u1, char *u2, char *g, char *o, char *c)
 	return success;
 }
 
-int objects_objlist(char *u1, char *u2, char *g, char *o, char *c)
+int objects_objlist(char *u1, char *u2, char *g, char *o, char *c, char *p)
 {
 	int success = -1;
 	int show_length = 0;
@@ -110,7 +115,7 @@ int objects_objlist(char *u1, char *u2, char *g, char *o, char *c)
 	return success;
 }
 
-int objects_objsetacl(char *u1, char *u2, char *g, char *o, char *c)
+int objects_objsetacl(char *u1, char *u2, char *g, char *o, char *c, char *p)
 {
 	int success = -1;
 
@@ -141,7 +146,7 @@ int objects_objsetacl(char *u1, char *u2, char *g, char *o, char *c)
 	return success;
 }
 
-int objects_objgetacl(char *u1, char *u2, char *g, char *o, char *c)
+int objects_objgetacl(char *u1, char *u2, char *g, char *o, char *c, char *p)
 {
 	int success = -1;
 
@@ -177,7 +182,7 @@ int objects_objgetacl(char *u1, char *u2, char *g, char *o, char *c)
 }
 
 
-int objects_objtestacl(char *u1, char *u2, char *g, char *o, char *op_name)
+int objects_objtestacl(char *u1, char *u2, char *g, char *o, char *op_name, char *p)
 {
 	//if the op code is valid:
 	if (namechecking_check(op_name, OPS) == 0)

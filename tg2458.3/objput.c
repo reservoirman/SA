@@ -17,8 +17,7 @@ int main (int argc, char **argv)
 {
 	int opt, success = 1, result = -1;
 	
-	fread(buffer, sizeof(char), OBJECT_SIZE, stdin);
-
+	
 	//extract the user name
 	uid_t uid = getuid();
 	struct passwd *us = getpwuid(uid);
@@ -30,8 +29,27 @@ int main (int argc, char **argv)
 	//validate the user and group names
 	if (us != NULL && gs != NULL)
 	{
-		if (argc == 2)
+		char *passphrase = NULL; 
+
+		while ((opt = getopt(argc, argv, ":k:")) != -1)
 		{
+			switch (opt)
+			{
+				case 'k':
+					passphrase = optarg;
+					break;
+				case '?':
+					printf("Unknown option: %c\n", optopt);
+					break;
+				default:
+					printf ("Invalid input.  Please try again.\n");
+					break;
+			}
+		}
+
+		if (argc == 4)
+		{
+			fread(buffer, sizeof(char), OBJECT_SIZE, stdin);
 			//if (namechecking_validateInputs(us->pw_name, gs->gr_name, argv[1]) == 0)
 			{
 				//divide the full up into 0x2F9-byte long chunks to send to the angel
@@ -56,8 +74,9 @@ int main (int argc, char **argv)
 				result = messaging_sendContent(chunk, 1);
 				if (result == 0)
 				{
+					//printf("OBJECT NAME IS.... = %s\n", argv[optind]);
 					//now to construct the request message to send to the angel
-					result = messaging_sendRequest(OBJPUT, us->pw_name, gs->gr_name, argv[1]);
+					result = messaging_sendRequest2(OBJPUT, us->pw_name, gs->gr_name, argv[optind], passphrase);
 					if (result == 0)
 					{
 						//if successful, send the content
@@ -84,7 +103,7 @@ int main (int argc, char **argv)
 		}
 		else
 		{
-			printf("OBJPUT error: please enter the object name.\n");
+			printf("OBJPUT error: please enter the object name, followed by -k passphrase.\n");
 		}
 	}
 	else

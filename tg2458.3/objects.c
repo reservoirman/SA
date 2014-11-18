@@ -28,12 +28,9 @@ static int _createUserList()
 	uid_t uid = getuid();
 	struct passwd *us = getpwuid(uid);
 
-
-	chdir("enclave/");
 	file = fopen("initializer.txt", "r");
 	const char* space = " \n";
 	users_group_list = (Item **)malloc(sizeof(Item **));
-
 	if (file != NULL)
 	{
 		//read the filename from initializer
@@ -42,6 +39,10 @@ static int _createUserList()
 			//open that file
 			fclose(file);
 			file = fopen(initializer_filename, "r");
+			if (file == NULL)
+			{
+				printf("!!!!Could not open %s!! %s\n", initializer_filename, strerror(errno));
+			}
 			if (file != NULL)
 			{
 				while (fgets(line_from_users_list, MAXNAMELENGTH, file) != NULL)
@@ -78,6 +79,7 @@ static int _createUserList()
 	if (file == NULL)
 	{
 		printf("Could not open file to initialize user/group list!!! %s\n", strerror(errno));
+
 	}
 	return success;
 }
@@ -161,7 +163,7 @@ int objects_createObject(char *iUser, char *iName, char *content, ObjectType whi
 		filename = _constructACLName(iName);
 	}
 	//creating the file for the object
-	chdir("enclave");
+	// /chdir("enclave");
 	file = fopen(filename, "w+");
 	if (file > 0)
 	{

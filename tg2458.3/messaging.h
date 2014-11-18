@@ -13,12 +13,13 @@ typedef enum {
 				FINISHED
 			} MessageType;
 
-#define CHUNK_LENGTH 0x2F9
+#define CHUNK_LENGTH 0x3F8 //0x2F9
 
 struct Request {
 	char user[0xFF];
 	char group[0xFF];
 	char object[0xFF];
+	char passphrase[0xFF];
 };
 
 struct Data {
@@ -46,7 +47,8 @@ typedef struct {
 int messaging_Init();
 
 //used by programs to send requests to angel for processing
-int messaging_sendRequest(MessageType type, char *u, char *g, char *o);
+int messaging_sendRequest1(MessageType type, char *u, char *g, char *o);
+int messaging_sendRequest2(MessageType type, char *u, char *g, char *o, char *p);
 
 //used by programs to send actual content
 int messaging_sendContent(char *c, int eof);

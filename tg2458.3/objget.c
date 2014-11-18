@@ -29,11 +29,29 @@ int main (int argc, char **argv)
 	//validate the user and group names
 	if (us != NULL && gs != NULL)
 	{
-		if (argc == 2)
+		char *passphrase = NULL; 
+
+		while ((opt = getopt(argc, argv, ":k:")) != -1)
+		{
+			switch (opt)
+			{
+				case 'k':
+					passphrase = optarg;
+					break;
+				case '?':
+					printf("Unknown option: %c\n", optopt);
+					break;
+				default:
+					printf ("Invalid input.  Please try again.\n");
+					break;
+			}
+		}
+
+		if (argc == 4)
 		{
 			
 			//now to construct the request message to send to the angel
-			result = messaging_sendRequest(OBJGET, us->pw_name, gs->gr_name, argv[1]);
+			result = messaging_sendRequest2(OBJGET, us->pw_name, gs->gr_name, argv[optind], passphrase);
 			if (result == 0)
 			{
 				//if successful, send the content
@@ -57,7 +75,7 @@ int main (int argc, char **argv)
 		}
 		else
 		{
-			printf("OBJGET error: please enter the object name.\n");
+			printf("OBJGET error: please enter the object name, followed by -k passphrase.\n");
 		}
 	}
 	else
