@@ -4,7 +4,7 @@ Ten-Seng Guh
 tg2458
 
 
-This is homework assignment 3.  It is an object store providing access control lists for its objects which now enforces encryption on its objects.
+This is homework assignment 3.  It is an object store providing access control lists for its objects which now enforces encryption on its objects.  The encryption takes place in a two-step process: the message is encrypted with an AES 128-bit algorithm, using a passphrase that is hashed using MD5. 
 
 One big improvement from the previous homework assignment:
 - the angel (daemon) message handler is no longer running as root.  As was stated in class, there is no need for the object store to run as root; all that is necessary is a user who has exclusive rights to the object store (folder called "enclave").  Now, this user also has exclusive access to the urandom keys for each object (folder called "keySafe").  This exclusive user's name is "keymaker".  You will see in the test script run1.sh that the angel is run as keymaker.  The key storing functions will fail if the angel realizes it's being run by a different user (even root!).  So this is a significant security improvement.
