@@ -14,6 +14,7 @@ additional lines of code!  This can be seen in objectprograms.c.  It pays to be 
 
 
 Before (HW2 version):
+```
 		if (objects_createObject(u2, o, c, DATA) == -1)
 		{				
 			printf("Failed to create object %s.  Please try again.\n", o);
@@ -24,8 +25,9 @@ Before (HW2 version):
 			printf("OBJPUT: object written!\n");
 		}
 
-
+```
 After (HW3 version):
+```
 		const unsigned char *ec = objectcrypto_encrypt(u2, o, c, p);
 		if (objects_createObject(u2, o, (char *)ec, DATA) == -1)
 		{				
@@ -37,22 +39,24 @@ After (HW3 version):
 			printf("OBJPUT: object written! Encrypted as %s:\n", ec);
 		}
 
-
+```
 Before (HW2 version):
+```
 			char *contents = objects_readObject(u2, o, DATA);
 			if (contents != NULL)
 			printf("%s\n", contents);
 			success = 0;
-
+```
 
 After (HW3 version):
+```
 			unsigned char *ec = objects_readObject(u2, o, DATA);
 			//decrypt the contents now
 			const unsigned char *dc = objectcrypto_decrypt(u2, o, ec, p);
 			if (dc != NULL)
 				printf("%s\n", dc);
 			success = 0;
-
+```
 
 The password for root and tinyvm is Gangstas2013.
 NOTE: the paths will only work on the VM!  No guarantees on clic machines.
